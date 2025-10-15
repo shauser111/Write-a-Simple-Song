@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Songwriter's Pad</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <script>
+        // Set theme on initial load - Light mode is the default
+        if (localStorage.theme === 'dark') {
+            document.documentElement.classList.add('dark')
+        } else {
+            document.documentElement.classList.remove('dark')
+        }
+    </script>
+    <style>
+        html {
+            /* 19px * 0.8 = 15.2px. Rounded to 15px. */
+            font-size: 15px;
+        }
+    </style>
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <button id="theme-toggle" title="Toggle Dark/Light Mode" class="fixed top-24 right-4 z-50 p-2 rounded-full bg-white dark:bg-gray-800 shadow-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-500">
+        <svg id="theme-toggle-sun" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        <svg id="theme-toggle-moon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+    </button>
+    <input type="file" id="json-upload" class="hidden" accept=".json">
+
+    <div class="container mx-auto px-4 py-12 max-w-4xl">
+        <header class="text-center mb-12 relative">
+            <h1 class="text-4xl md:text-5xl font-bold text-violet-800 dark:text-violet-400">A Guide to Crafting Your First Song</h1>
+
+            <p class="mt-4 text-lg text-gray-600 dark:text-gray-400">An interactive guide for anyone who has never written a song or who just needs some tips.<span class="id-rationale-container">
+                <span class="id-rationale-icon">i</span>
+                <span class="id-rationale-tooltip tooltip-bottom">
+                    <b>ID Rationale:</b>The target learners are college students. They are digital natives who are comfortable with interactive media but may lack formal music training. The primary motivation is the desire for a creative outlet for self-expression. The tone and activities are designed to be engaging, low-stakes, and empowering.This guide is designed for absolute beginners, but the principles are useful for all skill levels.
+                </span>
+            </span></p>
+
+        </header>
+
+        <main>
+
+
+
+
+
+        </header>
+
+        <main>
+            <section class="guide-section">
+              <h2 class="text-3xl font-bold mb-4">The Fundamentals</h2>
+<span class="id-rationale-container">
+    <span class="id-rationale-icon">i</span>
+    <span class="id-rationale-tooltip">
+        <b>ID Rationale:</b>This interactive guide was built using the ADDIE model of instructional design. The goal was not just to create a tool, but to design a complete learning experience. The initial Analysis phase, which informs the entire project, is outlined in various tips below.
+    </span>
+</span>
+                <h3 class="text-2xl font-semibold mb-2">The Golden Rule: Unity in Songwriting</h3>
+                <p class="mb-6">Every element of your song – lyrics, melody, rhythm, and vibe – should serve a central idea or feeling. Think of it like a thesis statement in an essay: everything else supports it.</p>
+                
+                <h3 class="text-2xl font-semibold mb-2">Song Structure: A Basic Framework</h3>
+                <p class="mb-4">Many modern songs follow a predictable pattern. Visualizing this structure helps in organizing your ideas.
+
+                </p>
+            
+ 
+
+<div class="text-center structure-diagram bg-gray-100 p-4 rounded-lg font-mono text-sm md-text-base mb-6">
+Intro
+    <span class="id-rationale-container">
+        <span class="id-rationale-icon">i</span>
+        <span class="id-rationale-tooltip">
+            <b>Intro:</b> The intro is the musical opening of a song that comes before the vocals begin. Its primary function is to establish the mood, key, and tempo, grabbing the listener's attention.
+
+Example: The iconic opening guitar riff of "Sweet Child O' Mine" by Guns N' Roses.
+        </span>
+    </span>
+
+    &rarr; Verse 1
+    <span class="id-rationale-container">
+        <span class="id-rationale-icon">i</span>
+        <span class="id-rationale-tooltip">
+            <b>Verse:</b> The 
+
+verse is the section of the song that tells the story, provides details, and moves the narrative forward. Verses typically have different lyrics each time they appear but share the same melody.
+
+
+
+Example: "Ma'am, I know you don't know me from Adam / But these hand prints on the front steps are mine" from "The House That Built Me" sets up the story.
+        </span>
+    </span>
+
+    &rarr; Chorus
+    <span class="id-rationale-container">
+        <span class="id-rationale-icon">i</span>
+        <span class="id-rationale-tooltip">
+            <b>Chorus:</b> The chorus is the central, most memorable part of a song. It contains the main idea or hook and is repeated multiple times with the same lyrics and melody. Its function is to summarize the song's core message.
+
+
+Example: The repeated refrain "Live like you were dyin'" in Tim McGraw's song, which captures the entire theme.
+        </span>
+    </span>
+
+    &rarr; Verse 2
+
+    &rarr; Chorus
+    
+        </span>
+    </span>
+
+    &rarr; Bridge
+    <span class="id-rationale-container">
+        <span class="id-rationale-icon">i</span>
+        <span class="id-rationale-tooltip">
+            <b>Bridge:</b> The 
+
+bridge is a transitional section that provides a contrast to the verse and chorus. It often introduces a new musical or lyrical perspective, a shift in emotion, or a key change, before leading back to a final chorus.
+
+
+Example: In "The House That Built Me," the bridge reveals the ultimate reason for the singer's visit: "I got lost in this whole world and forgot who I am".
+        </span>
+    </span>
+
+    &rarr; Chorus
+  
+    &rarr; Outro
+    <span class="id-rationale-container">
+        <span class="id-rationale-icon">i</span>
+        <span class="id-rationale-tooltip">
+            <b>Outro:</b> The outro (from "out-troduction") is the concluding section of a song. It provides a sense of closure, often by repeating the main hook, fading out, or introducing a final musical or lyrical thought.
+
+Example: The extended guitar solo at the end of "Hotel California" by the Eagles that slowly fades to black.
+        </span>
+    </span>
+</div>
+
+
+                <h3 class="text-2xl font-semibold mb-2">Lyrical Technique: Showing, Not Telling</h3>
+                <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
+                    <p class="flex-1">Instead of stating an emotion, show it through descriptive language and sensory details.</p>
+                    <div class="flex-shrink-0 flex gap-4">
+                        <div class="image-cropper"><img src="assets/images/0001.png" alt="Image illustrating lyrical technique"></div>
+                        <div class="image-cropper"><img src="assets/images/0002.png" alt="Image illustrating lyrical technique"></div>
+                    </div>
+                </div>
+                <div class="example-box">
+                    <p>Instead of telling the listener, "I'm so happy to be free from school," you can <strong>show</strong> it with action:</p>
+                <p class="mt-2 pl-4 border-l-2 border-gray-400 dark:border-gray-500">
+    <em>Throwing all my books on the ground, 
+        <span class="tooltip-container">(8)
+            <span class="tooltip-text">This number indicates the syllable count for the lyric line.</span>
+        </span>
+        <br>
+        Not another classroom to be found. 
+        <span class="tooltip-container">(8)
+            <span class="tooltip-text">This number indicates the syllable count for the lyric line.</span>
+        </span>
+    </em>
+</p>
+                </div>
+            </section>
+
+            <section class="guide-section">
+                <h2 class="text-3xl font-bold mb-4">The Parts of a Song</h2>
+                <div class="space-y-12">
+                    <div>
+                        <h3 class="text-xl font-semibold">Verse 1: Setting the Scene</h3>
+                        <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
+                            <p class="flex-1">Introduce your story or theme. What's the context? Think back to when you were in third grade on the last day of school.</p>
+                            <div class="flex-shrink-0 flex gap-4">
+                                <div class="image-cropper"><img src="assets/images/0003.png" alt="Image illustrating a song verse"></div>
+                                <div class="image-cropper"><img src="assets/images/0004.png" alt="Image illustrating a song verse"></div>
+                            </div>
+                        </div>
+                        <div class="example-box">
+                            <p><strong>Example (Theme: Summer Freedom):</strong></p>
+                            <p class="mt-2 pl-4 border-l-2 border-gray-400 dark:border-gray-500"><em>The final bell is ringing loud, (8)<br>I'm running out into the crowd. (8)<br>Throwing all my books on the ground, (8)<br>Not another classroom to be found. (8)</em></p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold">Chorus: Main Idea</h3>
+                        <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
+                            <p class="flex-1">Summarize your theme in a few lines. This is your core message.</p>
+                             <div class="flex-shrink-0 flex gap-4">
+                                <div class="image-cropper"><img src="assets/images/0005.png" alt="Image illustrating a song chorus"></div>
+                                <div class="image-cropper"><img src="assets/images/0006.png" alt="Image illustrating a song chorus"></div>
+                            </div>
+                        </div>
+                        <div class="example-box">
+                             <p><strong>Example:</strong></p>
+                            <p class="mt-2 pl-4 border-l-2 border-gray-400 dark:border-gray-500"><em>I wish this summer would never end, (9)<br>'Cause the sun is high and school is out, (8)<br>This is what I dream about. (7)</em></p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold">Verse 2: Developing the Story</h3>
+                        <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
+                            <p class="flex-1">Add new details or move the story forward. What happens next?</p>
+                            <div class="flex-shrink-0 flex gap-4">
+                                <div class="image-cropper"><img src="assets/images/0007.png" alt="Image illustrating a second verse"></div>
+                                <div class="image-cropper"><img src="assets/images/0008.png" alt="Image illustrating a second verse"></div>
+                            </div>
+                        </div>
+                        <div class="example-box">
+                             <p><strong>Example:</strong></p>
+                            <p class="mt-2 pl-4 border-l-2 border-gray-400 dark:border-gray-500"><em>Now we're heading to the lake, (7)<br>The biggest cannonballs we'll make. (8)<br>No more homework, for goodness sake, (8)<br>Just ice cream and a chocolate shake. (8)</em></p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold">Bridge: A Fresh Perspective</h3>
+                        <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
+                            <p class="flex-1">Add a twist or shift in mood. This is the turning point.</p>
+                            <div class="flex-shrink-0 flex gap-4">
+                                <div class="image-cropper"><img src="assets/images/0009.png" alt="Image illustrating a song bridge"></div>
+                                <div class="image-cropper"><img src="assets/images/0010.png" alt="Image illustrating a song bridge"></div>
+                            </div>
+                        </div>
+                        <div class="example-box">
+                             <p><strong>Example:</strong></p>
+                            <p class="mt-2 pl-4 border-l-2 border-gray-400 dark:border-gray-500"><em>The sun goes down in pink and gold, (8)<br>A perfect story to be told. (8)<br>We're gathered 'round a campfire's light, (8)<br>And everything just feels so right. (8)</em></p>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold">Intro &amp; Outro (Optional Bookends)</h3>
+                        <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
+                            <p class="flex-1">An <strong>Intro</strong> sets the song's mood and can be a sound effect, a musical riff, or a short lyric. An <strong>Outro</strong> provides closure and can be a fade-out, a final sound, or a repeated key phrase.</p>
+                            <div class="flex-shrink-0 flex gap-4">
+                                <div class="image-cropper"><img src="assets/images/0011.png" alt="Image for intro/outro"></div>
+                                <div class="image-cropper"><img src="assets/images/0012.png" alt="Image for intro/outro"></div>
+                            </div>
+                        </div>
+                         <div class="example-box">
+                             <p><strong>Intro Example:</strong> <em>"Just one more minute..."</em><br>
+                             <strong>Outro Example:</strong> <em>"Never, ever end..."</em></p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="guide-section">
+                <h2 class="text-3xl font-bold mb-4">Musical Choices: The Principle of Prosody</h2>
+                <span class="id-rationale-container">
+                    <span class="id-rationale-icon">i</span>
+                    <span class="id-rationale-tooltip"><b>ID Rationale:</b> This section uses active learning. Instead of just reading, learners make choices (tempo, key). This interaction reinforces the concepts and connects them to the learner's own creative process, increasing engagement.</span>
+                </span>
+                <p class="mb-6"><strong>Prosody</strong> is the art of making sure every musical choice supports the lyrical emotion. If your lyrics are sad, the music should sound sad. If your lyrics are happy, the music should sound happy.</p>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold">Tempo: The Speed of the Story</h3>
+                        <p>The pace or speed of the music, often measured in Beats Per Minute (BPM).</p>
+                        <ul class="list-disc list-inside mt-2 space-y-1">
+                            <li><strong>Fast (Allegro, ~120+ BPM):</strong> High energy, excitement, joy.</li>
+                            <li><strong>Slow (Adagio, ~60-80 BPM):</strong> Sadness, intimacy, reflection.</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold">Key: The Song's Emotional Color</h3>
+                        <p>A song's "key" is its musical center of gravity, which can be thought of as either Major or Minor.</p>
+                        <div class="flex flex-col md:flex-row gap-6 items-center mt-4">
+                            <div class="flex-grow w-full">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Key Type</th>
+                                            <th>Sound/Feeling</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Major</strong></td>
+                                            <td>Bright, Happy, Open</td>
+                                        </tr>
+                                         <tr>
+                                            <td><strong>Minor</strong></td>
+                                            <td>Darker, Sad, Dramatic</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="flex gap-4">
+                                <!-- Major Key Image -->
+                                <div class="image-cropper">
+                                    <img src="assets/images/major-key.png" alt="Vibrant, abstract representation of a Major key's happy mood">
+                                </div>
+                                <!-- Minor Key Image -->
+                                <div class="image-cropper">
+                                    <img src="assets/images/minor-key.png" alt="Darker, moody representation of a Minor key's dramatic feel">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold">Instrumentation: The Cast of Characters</h3>
+                        <p>The specific instruments chosen for the song. An acoustic guitar can feel intimate, while a synthesizer can feel modern and atmospheric.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section class="guide-section" id="step1">
+                <h2 class="text-3xl font-bold mb-2">Step 1: The Story Interview (Your Turn to Plan)</h2>
+                <span class="id-rationale-container">
+                    <span class="id-rationale-icon">i</span>
+                    <span class="id-rationale-tooltip"><b>ID Rationale:</b> The Problem: "Blank Page" Paralysis.
+Many aspiring songwriters feel overwhelmed by the lack of structure when starting. They have ideas but don't know the basic building blocks to organize them. This guide aims to solve that problem by providing a clear, step-by-step framework. 
+This exercise, Step 1, is an example of scaffolding. It breaks down the complex task of "writing a song" into simple, non-musical questions. This builds the learner's confidence and provides the raw material for the next, more structured step.</span>
+                </span>
+                <p class="mb-6">For this exercise, we'll use a specific prompt: <strong>Write a song about a place you've never been but would love to visit.</strong> Answer the following questions to build your story. Don't worry about lyrics yet!</p>
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">1. The Main Idea</h3>
+                        <p class="mb-2">What is the core feeling or message of your song? This will become your <strong>Chorus</strong>.</p>
+                        <textarea id="main-idea" rows="4" placeholder="e.g., The excitement of finally seeing Paris, the peaceful feeling of a hidden beach..."></textarea>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">2. The Opening Scene</h3>
+                        <p class="mb-2">Where are you <strong>now</strong> while you're dreaming of this place? This will be your <strong>Verse 1</strong>.</p>
+                        <textarea id="opening-scene" rows="4" placeholder="e.g., Sitting in a boring class, stuck in traffic on the highway, looking out my bedroom window..."></textarea>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">3. The Story's Development</h3>
+                        <p class="mb-2">Describe the place you're dreaming of. What would you do there? This will become your <strong>Verse 2</strong>.</p>
+                        <textarea id="story-development" rows="4" placeholder="e.g., Walking through cobblestone streets, hearing the waves crash on the shore, seeing the neon lights of the city..."></textarea>
+                    </div>
+                     <div>
+                        <h3 class="text-xl font-semibold mb-2">4. The Turning Point</h3>
+                        <p class="mb-2">What changes from just dreaming to planning or longing? This will become your <strong>Bridge</strong>.</p>
+                        <textarea id="turning-point" rows="4" placeholder="e.g., A moment of realizing I need to make this trip happen, a bittersweet thought about why I can't go yet..."></textarea>
+                    </div>
+                </div>
+            </section>
+
+            <section class="guide-section" id="step2">
+               
+<h2 class="text-3xl font-bold mb-2">Step 2: Now, Let's Write Your Lyrics</h2>
+<span class="id-rationale-container">
+    <span class="id-rationale-icon">i</span>
+    <span class="id-rationale-tooltip">
+        <b>ID Rationale:</b> This step applies the concepts from Step 1, using a structured 'puzzle' to reduce anxiety and encourage creativity.
+    </span>
+</span>
+
+
+
+                <div class="mb-6">
+                    <h3 class="text-xl font-semibold mb-2">A Note on Syllables (And How to "Cheat")</h3>
+                     <p>Syllables give your lyrics a consistent rhythm. The counts below are a target, but you can easily adjust a line.</p>
+                     <ul class="list-disc list-inside mt-2 space-y-1">
+                         <li><strong>To reduce syllables:</strong> Use contractions (e.g., change "it is" to "it's").</li>
+                         <li><strong>To add syllables:</strong> Add small words like "oh," "well," or "just."</li>
+                     </ul>
+                </div>
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-xl font-semibold">1. Draft Your Chorus:</h3>
+                        <p class="mb-2"><strong>Reminder:</strong> This is your main idea, the part everyone will sing along to. It should be memorable and will likely have the most energy in your song.</p>
+                        <div class="reminder-box"><strong>Reminder:</strong> Your main idea was "<em id="context-chorus">...</em>"</div>
+                        <span class="id-rationale-container">
+                            <span class="id-rationale-icon">i</span>
+                            <span class="id-rationale-tooltip"><b>ID Rationale:</b> This is a form of immediate feedback and reinforcement. By pulling the learner's own words from the previous step, it reduces cognitive load (they don't have to remember their idea) and directly connects their initial plan to the lyric-writing task.</span>
+                        </span>
+                        <p class="mb-4"><strong>Exercise:</strong> Turn your Main Idea into the six-line lyric puzzle below. <br>
+
+Use the labels on the right as your guide for each line:
+
+The Number (e.g., 8) is your target syllable count.
+
+The Letter (e.g., A) is the rhyme group. Lines with the same letter must rhyme. Lines with different letters do not need to rhyme.
+
+For example, the two lines labeled (8A) should each have about 8 syllables and should rhyme with each other.</p>
+                        <div id="chorus-lyrics">
+                            <div class="lyric-line"><textarea rows="1" data-line="1"></textarea><span class="lyric-line-label">(8A)</span></div>
+                            <div class="lyric-line"><textarea rows="1" data-line="2"></textarea><span class="lyric-line-label">(8A)</span></div>
+                            <div class="lyric-line"><textarea rows="1" data-line="3"></textarea><span class="lyric-line-label">(7B)</span></div>
+                            <div class="lyric-line"><textarea rows="1" data-line="4"></textarea><span class="lyric-line-label">(8C)</span></div>
+                            <div class="lyric-line"><textarea rows="1" data-line="5"></textarea><span class="lyric-line-label">(8C)</span></div>
+                            <div class="lyric-line"><textarea rows="1" data-line="6"></textarea><span class="lyric-line-label">(7B)</span></div>
+                        </div>
+                    </div>
+                     <div>
+                        <h3 class="text-xl font-semibold">2. Draft Verse 1:</h3>
+                        <p class="mb-2"><strong>Reminder:</strong> This verse sets the scene for your story. The energy here should establish the initial mood of your song—is it thoughtful, energetic, somber?</p>
+                        <div class="reminder-box"><strong>Reminder:</strong> Your idea for the opening scene was "<em id="context-verse1">...</em>"</div>
+                        <p class="mb-4"><strong>Exercise:</strong> Turn your Opening Scene into the four-line lyric puzzle below.</p>
+                        <div id="verse1-lyrics">
+                            <div class="lyric-line"><textarea rows="1" data-line="1"></textarea><span class="lyric-line-label">(8A)</span></div>
+                            <div class="lyric-line"><textarea rows="1" data-line="2"></textarea><span class="lyric-line-label">(8A)</span></div>
+                            <div class="lyric-line"><textarea rows="1" data-line="3"></textarea><span class="lyric-line-label">(8B)</span></div>
+                            <div class="lyric-line"><textarea rows="1" data-line="4"></textarea><span class="lyric-line-label">(8B)</span></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold">3. Draft Verse 2:</h3>
+                        <p class="mb-2"><strong>Reminder:</strong> This is where you develop the story and add new details. The energy can build from Verse 1, or it can maintain a similar level as you provide more information.</p>
+                         <div class="reminder-box"><strong>Reminder:</strong> Your idea for the story's development was "<em id="context-verse2">...</em>"</div>
+                        <p class="mb-4"><strong>Exercise:</strong> Turn your Story's Development into the four-line lyric puzzle below.</p>
+                        <div id="verse2-lyrics">
+                            <div class="lyric-line"><textarea rows="1" data-line="1"></textarea><span class="lyric-line-label">(8A)</span></div>
+                            <div class="lyric-line"><textarea rows="1" data-line="2"></textarea><span class="lyric-line-label">(7B)</span></div>
+                            <div class="lyric-line"><textarea rows="1" data-line="3"></textarea><span class="lyric-line-label">(8A)</span></div>
+                            <div class="lyric-line"><textarea rows="1" data-line="4"></textarea><span class="lyric-line-label">(7B)</span></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold">4. Draft Your Bridge:</h3>
+                        <p class="mb-2"><strong>Reminder:</strong> The bridge is your turning point—a "fresh perspective". The energy often shifts here. It might get quieter and more reflective, or it could build tension leading into the final, powerful chorus.</p>
+                        <div class="reminder-box"><strong>Reminder:</strong> Your idea for the turning point was "<em id="context-bridge">...</em>"</div>
+                        <p class="mb-4"><strong>Exercise:</strong> Turn your Turning Point into two to four lines that introduce the new feeling or thought.</p>
+                        <div id="bridge-lyrics">
+                             <div class="lyric-line"><textarea rows="1" data-line="1" placeholder="Line 1"></textarea></div>
+                             <div class="lyric-line"><textarea rows="1" data-line="2" placeholder="Line 2"></textarea></div>
+                             <div class="lyric-line"><textarea rows="1" data-line="3" placeholder="Line 3 (optional)"></textarea></div>
+                             <div class="lyric-line"><textarea rows="1" data-line="4" placeholder="Line 4 (optional)"></textarea></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold">5. Draft Your Intro &amp; Outro:</h3>
+                        <p class="mb-2">Bookend your song. These parts are very flexible and <strong>don't need to rhyme</strong>. Their main goal is to set the mood or provide closure, so a simple spoken phrase works perfectly. If you do want a rhyme, a simple couplet (AA) is best.</p>
+                        <div class="flex flex-col md:flex-row gap-4">
+                            <textarea id="intro-lyrics" class="flex-1" rows="2" placeholder="Intro: e.g., 'Just one more minute...'"></textarea>
+                            <textarea id="outro-lyrics" class="flex-1" rows="2" placeholder="Outro: e.g., 'Never, ever end...'"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="guide-section" id="step3">
+                <h2 class="text-3xl font-bold mb-2">Step 3: Define Your Sound</h2>
+                <p class="mb-6">Now let's think about the music. Based on your lyrics and the feeling of your song, answer the questions below to create a guide for the musicians.</p>
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">1. What is the overall feeling (tempo) of your song?</h3>
+                        <div id="tempo-choices" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <button class="sound-choice-btn" data-group="tempo" data-value="Fast and energetic (approx. 120-140 BPM)">Fast &amp; Energetic</button>
+                            <button class="sound-choice-btn" data-group="tempo" data-value="A steady, neutral pace (approx. 90-110 BPM)">Steady Pace</button>
+                            <button class="sound-choice-btn" data-group="tempo" data-value="Slow and thoughtful (approx. 70-90 BPM)">Slow &amp; Thoughtful</button>
+                        </div>
+                    </div>
+                     <div>
+                        <h3 class="text-xl font-semibold mb-2">2. What is the emotional color (key)?</h3>
+                         <div id="key-choices" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <button class="sound-choice-btn" data-group="key" data-value="Major (Bright, Happy)">Bright &amp; Happy</button>
+                            <button class="sound-choice-btn" data-group="key" data-value="Minor (Darker, Sad, Dramatic)">Dark &amp; Dramatic</button>
+                        </div>
+                    </div>
+                     <div>
+                        <h3 class="text-xl font-semibold mb-2">3. What instruments do you imagine? (Choose a few)</h3>
+                         <div id="instrument-choices" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                            <button class="sound-choice-btn" data-group="instrument" data-value="Acoustic Guitar" aria-pressed="false">Acoustic Guitar</button>
+                            <button class="sound-choice-btn" data-group="instrument" data-value="Electric Guitar" aria-pressed="false">Electric Guitar</button>
+                            <button class="sound-choice-btn" data-group="instrument" data-value="Piano" aria-pressed="false">Piano</button>
+                            <button class="sound-choice-btn" data-group="instrument" data-value="Drums & Bass" aria-pressed="false">Drums & Bass</button>
+                            <button class="sound-choice-btn" data-group="instrument" data-value="Synthesizers" aria-pressed="false">Synthesizers</button>
+                            <button class="sound-choice-btn" data-group="instrument" data-value="Strings" aria-pressed="false">Strings</button>
+                            <button class="sound-choice-btn" data-group="instrument" data-value="Ukulele" aria-pressed="false">Ukulele</button>
+                            <button class="sound-choice-btn" data-group="instrument" data-value="Brass Section" aria-pressed="false">Brass Section</button>
+                            <button class="sound-choice-btn" data-group="instrument" data-value="Woodwinds" aria-pressed="false">Woodwinds</button>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">4. Who is singing this?</h3>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div id="vocalist-choices">
+                                <h4 class="font-semibold mb-2 text-base">Vocalist</h4>
+                                <div class="flex gap-4">
+                                    <button class="sound-choice-btn flex-1" data-group="vocalist" data-value="Female Vocalist">Female</button>
+                                    <button class="sound-choice-btn flex-1" data-group="vocalist" data-value="Male Vocalist">Male</button>
+                                </div>
+                            </div>
+                            <div id="vocal-style-choices">
+                                <h4 class="font-semibold mb-2 text-base">Vocal Style (Choose a few)</h4>
+                                <div class="flex gap-4">
+                                    <button class="sound-choice-btn flex-1" data-group="vocal-style" data-value="Powerful" aria-pressed="false">Powerful</button>
+                                    <button class="sound-choice-btn flex-1" data-group="vocal-style" data-value="Emotional" aria-pressed="false">Emotional</button>
+                                    <button class="sound-choice-btn flex-1" data-group="vocal-style" data-value="Layered" aria-pressed="false">Layered</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-xl font-semibold mb-2">5. Other Considerations</h3>
+                        <p class="mb-2 text-gray-600 dark:text-gray-400">Jot down any other ideas for genre, theme, mood, rhythm, bassline, etc.</p>
+                        <textarea id="other-considerations" rows="4" placeholder="e.g., Genre: Indie Folk, Mood: Nostalgic and hopeful, Rhythm: A simple 4/4 beat with a tambourine..."></textarea>
+                    </div>
+                </div>
+            </section>
+            
+            <section class="guide-section">
+                <h2 class="text-3xl font-bold mb-4">Almost Done! Name Your Song</h2>
+<span class="id-rationale-container">
+    <span class="id-rationale-icon">i</span>
+    <span class="id-rationale-tooltip">
+        <b>ID Rationale:</b> Why Name the Song Last?
+Giving a song a title helps solidify its core identity and provides a focal point for the overall theme. While some songwriters start with a title and write tove haward it, this guide saves that step for the end. The goal is to encourage creative exploration first, preventing fixation on a title before the song's main ideas had a chance to develop. <br>
+
+<strong>The Desired Outcome: Empowerment & Action</strong><br>
+The primary learning objective is to empower a novice to write their first complete song idea, such as a verse and chorus. The experience is successful if the learner leaves feeling capable and equipped to continue their songwriting journey independently.
+    </span>
+</span>
+
+
+                 <input type="text" id="song-title" class="song-title-input w-full p-3 text-xl border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition" placeholder="Enter Your Song Title Here">
+            </section>
+
+            <div class="flex flex-col sm:flex-row justify-center gap-4 items-center">
+    <button id="save-progress-btn" class="action-btn btn-save">Save Progress</button>
+    <button id="generate-btn" class="action-btn btn-assemble">Assemble My Song!</button>
+    <button id="new-load-song-btn" class="action-btn btn-load">Load Progress</button>
+</div>
+
+            <section id="output-container" class="guide-section hidden">
+                <h2 id="output-title" class="text-3xl font-bold mb-4 text-center">Your Song Brief</h2>
+                <div id="song-output" class="text-lg leading-relaxed p-6 bg-gray-50 rounded-md border border-gray-200"></div>
+                
+                <h3 class="text-2xl font-bold mt-8 mb-4">Musician & Producer Notes</h3>
+                <textarea id="musician-notes-output" class="w-full p-6 bg-gray-50 rounded-md border border-gray-200 text-base" rows="10"></textarea>
+
+                <div class="text-center mt-8 flex flex-wrap justify-center gap-4">
+                     <button id="copy-btn" class="bg-gray-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-500 dark:hover:bg-gray-600 transition-all duration-300">
+                        Copy Brief
+                    </button>
+                     <button id="download-txt-btn" class="bg-violet-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-300 transition-all duration-300">
+                        Download .txt
+                    </button>
+                    <button id="download-json-btn" class="bg-violet-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-300 transition-all duration-300">
+                        Download .json
+                    </button>
+                     <button id="start-over-btn" class="ml-4 bg-transparent text-gray-600 dark:text-gray-300 font-bold py-2 px-6 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-all duration-300">
+                        Start Over
+                    </button>
+                </div>
+         
+
+        
+        </main>
+    </div>
+<script src="assets/js/script.js"></script>
+</body>
+</html>
+
+
