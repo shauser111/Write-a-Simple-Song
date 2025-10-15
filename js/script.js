@@ -41,10 +41,16 @@
 
     // --- 2. CORE FUNCTIONS ---
 
-    /**
-     * Resets the entire form to its initial state.
-     * THIS FUNCTION MOVED HERE TO FIX THE CRITICAL ERROR.
-     */
+    const showToast = (message) => {
+        const toast = document.getElementById('toast-notification');
+        if (!toast) return; // Prevent errors if the element is missing
+        toast.textContent = message;
+        toast.classList.remove('opacity-0', 'translate-x-full');
+        setTimeout(() => {
+            toast.classList.add('opacity-0', 'translate-x-full');
+        }, 3000); // Hide after 3 seconds
+    };
+    
     const handleStartOver = () => {
         document.querySelectorAll('textarea, input[type="text"]').forEach(input => input.value = '');
         Object.values(contextOutputs).forEach(el => el.textContent = '...');
@@ -55,7 +61,7 @@
             }
         });
         outputContainer.classList.add('hidden');
-        errorContainer.innerHTML = '';
+        if (errorContainer) errorContainer.innerHTML = '';
         window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -154,10 +160,24 @@
         }
 
         if (data.sound) {
+            // THIS MAP FIXES THE BUG by linking the button's data-group to the JSON property name.
+            const soundKeyMap = {
+                'tempo': 'tempo',
+                'key': 'key',
+                'instrument': 'instruments', // The button group is 'instrument', but the data is 'instruments'
+                'vocalist': 'vocalist',
+                'vocal-style': 'vocalStyle'  // The button group is 'vocal-style', but the data is 'vocalStyle'
+            };
+
             document.querySelectorAll('.sound-choice-btn').forEach(btn => {
                 const group = btn.dataset.group;
                 const value = btn.dataset.value;
-                const isSelected = Array.isArray(data.sound[group]) ? data.sound[group].includes(value) : data.sound[group] === value;
+                const dataKey = soundKeyMap[group]; // Use the map to find the correct key
+                if (!dataKey) return; // Skip if the group isn't in our map
+
+                const savedData = data.sound[dataKey];
+                const isSelected = Array.isArray(savedData) ? savedData.includes(value) : savedData === value;
+                
                 btn.classList.toggle('selected', isSelected);
                 if (btn.hasAttribute('aria-pressed')) {
                     btn.setAttribute('aria-pressed', isSelected);
@@ -165,13 +185,13 @@
             });
             document.getElementById('other-considerations').value = data.sound.otherConsiderations || '';
         }
-        alert('Song data loaded successfully!');
+        showToast('Song data loaded successfully!');
     };
 
     // --- 3. EVENT HANDLERS & LOGIC ---
 
     const assembleSong = (usePlaceholders = false) => {
-        errorContainer.innerHTML = '';
+        if (errorContainer) errorContainer.innerHTML = '';
         const data = getSongDataAsObject();
 
         outputTitle.textContent = data.songTitle.trim() || 'Untitled Song';
@@ -212,6 +232,7 @@
     };
     
     const handleGenerateClick = () => {
+        if (!errorContainer) return;
         errorContainer.innerHTML = '';
         const missingSections = [];
         if (getLyricsAsString('chorus-lyrics').trim().length === 0) missingSections.push('Chorus');
@@ -240,27 +261,44 @@
         a.href = url;
         const filename = (songData.songTitle.trim() || 'Untitled_Song').replace(/\s+/g, '_');
         a.download = `${filename}.json`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
+    };
+
+    const getBriefContent = () => {
+        const title = songTitleInput.value.trim() || 'Untitled Song';
+        const lyrics = songOutput.textContent;
+        const notes = musicianNotesOutput.value;
+        return `SONG TITLE: ${title}\n\n--- SONG LYRICS ---\n${lyrics}\n\n--- MUSICIAN & PRODUCER NOTES ---\n${notes}`;
     };
 
     // --- 4. EVENT LISTENERS ---
 
     document.addEventListener('click', (e) => {
-        const target = e.target;
-        if (target.matches('.sound-choice-btn')) {
+        const target = e.target.closest('button');
+        if (!target) return;
+
+        if (target.classList.contains('sound-choice-btn')) {
             const group = target.dataset.group;
             const isMultiSelect = group === 'instrument' || group === 'vocal-style';
+            
             if (isMultiSelect) {
                 target.classList.toggle('selected');
-                target.setAttribute('aria-pressed', target.classList.contains('selected'));
+                if(target.hasAttribute('aria-pressed')) {
+                    target.setAttribute('aria-pressed', target.classList.contains('selected'));
+                }
             } else {
+                const isCurrentlySelected = target.classList.contains('selected');
                 document.querySelectorAll(`.sound-choice-btn[data-group="${group}"]`).forEach(b => b.classList.remove('selected'));
-                target.classList.add('selected');
+                if (!isCurrentlySelected) {
+                    target.classList.add('selected');
+                }
             }
         }
         if (target.id === 'assemble-anyway-btn') assembleSong(true);
-        if (target.id === 'keep-editing-btn') errorContainer.innerHTML = '';
+        if (target.id === 'keep-editing-btn' && errorContainer) errorContainer.innerHTML = '';
     });
 
     themeToggleBtn.addEventListener('click', () => {
@@ -276,22 +314,22 @@
     downloadJsonBtn.addEventListener('click', handleSave); 
     
     copyBtn.addEventListener('click', () => {
-        const briefContent = `SONG TITLE: ${songTitleInput.value.trim() || 'Untitled Song'}\n\n--- SONG LYRICS ---\n${songOutput.textContent}\n\n--- MUSICIAN & PRODUCER NOTES ---\n${musicianNotesOutput.value}`;
-        navigator.clipboard.writeText(briefContent).then(() => {
+        navigator.clipboard.writeText(getBriefContent()).then(() => {
             copyBtn.textContent = 'Copied!';
             setTimeout(() => { copyBtn.textContent = 'Copy Brief'; }, 2000);
         });
     });
 
     downloadTxtBtn.addEventListener('click', () => {
-        const briefContent = `SONG TITLE: ${songTitleInput.value.trim() || 'Untitled Song'}\n\n--- SONG LYRICS ---\n${songOutput.textContent}\n\n--- MUSICIAN & PRODUCER NOTES ---\n${musicianNotesOutput.value}`;
-        const blob = new Blob([briefContent], { type: 'text/plain' });
+        const blob = new Blob([getBriefContent()], { type: 'text/plain' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         const filename = (songTitleInput.value.trim() || 'Untitled_Song').replace(/\s+/g, '_');
         a.download = `${filename}_brief.txt`;
+        document.body.appendChild(a);
         a.click();
+        document.body.removeChild(a);
         URL.revokeObjectURL(url);
     });
 
@@ -304,7 +342,7 @@
                 const data = JSON.parse(e.target.result);
                 populateFormWithData(data);
             } catch (error) {
-                alert('Error: Could not parse JSON file.');
+                showToast('Error: Could not parse JSON file.');
                 console.error("JSON Parse Error:", error);
             }
         };
@@ -316,7 +354,9 @@
     
     Object.keys(ideaInputs).forEach(key => {
         ideaInputs[key].addEventListener('input', () => {
-            contextOutputs[key].textContent = ideaInputs[key].value || '...';
+            if (contextOutputs[key]) {
+                contextOutputs[key].textContent = ideaInputs[key].value || '...';
+            }
         });
     });
 
