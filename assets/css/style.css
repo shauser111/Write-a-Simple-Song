@@ -1,4 +1,7 @@
 /* --- Global & Typography --- */
+
+
+
 body {
     font-family: 'Inter', sans-serif;
     scroll-behavior: smooth;
@@ -31,6 +34,15 @@ textarea {
 }
 
 /* --- Components --- */
+.reminder-box {
+    background-color: #eef2ff; /* A very light indigo background */
+    border-left: 4px solid #818cf8; /* Light indigo accent */
+    padding: 1rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-radius: 0.5rem;
+    color: #312e81; /* Dark indigo text */
+}
 
 .example-box {
     background-color: #f9fafb; /* A very light gray background */
@@ -119,8 +131,8 @@ textarea {
 .image-cropper img {
     display: inline;
     margin: 0 auto;
-    height: auto;
-    width: 110%;
+    height: 100%;
+    width: auto;
     object-fit: cover;
     object-position: center;
 }
@@ -131,6 +143,7 @@ textarea {
     display: inline-flex;
     align-items: center;
     margin-left: 0.5rem;
+    vertical-align: middle;
 }
 
 .id-rationale-icon {
@@ -191,7 +204,6 @@ textarea {
     visibility: visible;
     opacity: 1;
 }
-
 
 /* --- Dark Mode Overrides --- */
 .dark body {
@@ -302,113 +314,18 @@ textarea {
      border-color: #f9fafb transparent transparent transparent;
 }
 
-/* --- Instructional Design Rationale Tooltips --- */
-
-/* 1. The main container */
-.id-rationale-container {
-    position: relative; /* Establishes the anchor for the tooltip */
-    display: inline-flex; /* Aligns the icon nicely with text */
-    align-items: center;
-    margin-left: 0.5rem;
-}
-
-/* 2. The visible 'i' icon */
-.id-rationale-icon {
-    display: inline-block;
-    width: 1.25rem;
-    height: 1.25rem;
-    border-radius: 9999px; /* Makes it a circle */
-    background-color: #e0e7ff; /* Light indigo */
-    color: #3730a3; /* Dark indigo */
-    font-weight: bold;
-    text-align: center;
-    line-height: 1.25rem;
-    font-family: serif;
-    font-style: italic;
-    cursor: pointer;
-    user-select: none;
-    transition: transform 0.2s;
-}
-
-/* 3. The tooltip box (HIDDEN by default) */
-.id-rationale-tooltip {
-    /* Hide it visually */
-    visibility: hidden;
-    opacity: 0;
-
-    /* Styling */
-    width: 250px;
-    background-color: #1f2937; /* Dark background */
-    color: #fff; /* White text */
-    text-align: left;
-    border-radius: 6px;
-    padding: 10px;
-    font-size: 0.875rem;
-    line-height: 1.5;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-
-    /* Positioning */
-    position: absolute; /* Position it relative to the container */
-    z-index: 10;
-    bottom: 150%; /* Position it above the icon */
-    left: 50%;
-    margin-left: -125px; /* Use half of the width to center it */
-    
-    /* Smooth fade-in effect */
-    transition: opacity 0.3s;
-}
-
-/* 4. The little arrow below the tooltip */
-.id-rationale-tooltip::after {
-    content: "";
-    position: absolute;
-    top: 100%; /* Position arrow at the bottom of the tooltip */
-    left: 50%;
-    margin-left: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: #1f2937 transparent transparent transparent; /* This creates the triangle shape */
-}
-
-/* 5. The REVEAL logic */
-.id-rationale-container:hover .id-rationale-tooltip {
-    /* On hover, make it visible */
-    visibility: visible;
-    opacity: 1;
-}
-
-/* Optional: a little grow effect for the icon on hover */
-.id-rationale-container:hover .id-rationale-icon {
-    transform: scale(1.1);
-}
-
-/* 1. The main container */
-.id-rationale-container {
-    position: relative; /* Establishes the anchor for the tooltip */
-    display: inline-flex; /* Aligns the icon nicely with text */
-    align-items: center;
-    margin-left: 0.5rem;
-    vertical-align: middle; /* <-- Add this line */
-}
-
 /* --- General Purpose Text Tooltip --- */
-
-/* The container that triggers the hover */
 .tooltip-container {
-    position: relative; /* The anchor for the tooltip box */
+    position: relative;
     display: inline-block;
-    cursor: zoom-in; /* Shows a question mark cursor on hover */
-    text-decoration: underline dotted; /* A subtle hint that it's interactive */
+    cursor: help;
+    text-decoration: underline dotted;
 }
 
-/* The hidden tooltip box */
 .tooltip-text {
-    /* Hidden by default */
     visibility: hidden;
     opacity: 0;
-
-    /* Styling */
-    width: 220px; /* A bit narrower is good for short tips */
+    width: 220px;
     background-color: #1f2937;
     color: #fff;
     text-align: center;
@@ -416,42 +333,34 @@ textarea {
     padding: 8px;
     font-size: 0.875rem;
     box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-    
-    /* Positioning */
     position: absolute;
     z-index: 10;
-    bottom: 125%; /* Position it just above the text */
+    bottom: 125%;
     left: 50%;
-    margin-left: -110px; /* Half of the width to center it */
-    
-    /* Smooth fade effect */
+    margin-left: -110px;
     transition: opacity 0.3s;
 }
 
-/* The logic to show the tooltip on hover */
 .tooltip-container:hover .tooltip-text {
     visibility: visible;
     opacity: 1;
 }
 
 .example-box p {
-    font-size: 1.15rem; /* Adjust this value as needed */
-    line-height: 1.6;  /* Optional: improves readability with larger text */
+    font-size: 1.15rem;
+    line-height: 1.6;
 }
 
 /* --- Tooltip Modifier for Downward Position --- */
-
-/* Targets a tooltip that ALSO has the .tooltip-bottom class */
 .id-rationale-tooltip.tooltip-bottom {
-    top: 160%;      /* Positions the box below the icon */
-    bottom: auto;   /* Removes the original 'bottom' property */
+    top: 160%;
+    bottom: auto;
 }
 
-/* Flips the little arrow to point up */
 .id-rationale-tooltip.tooltip-bottom::after {
-    top: -10px;     /* Moves arrow to the top of the box */
-    bottom: auto;   /* Removes the original 'bottom' property */
-    border-color: transparent transparent #1f2937 transparent; /* Changes border to create an upward-pointing triangle */
+    top: -10px;
+    bottom: auto;
+    border-color: transparent transparent #1f2937 transparent;
 }
 
 /* --- Custom Action Buttons --- */
@@ -459,7 +368,7 @@ textarea {
     color: white;
     font-weight: bold;
     padding: 0.8rem 2rem;
-    border-radius: 50px; /* Rounded pill shape */
+    border-radius: 50px;
     font-size: 1.1rem;
     cursor: pointer;
     transition: all 0.2s ease-in-out;
