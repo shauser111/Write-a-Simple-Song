@@ -1,4 +1,4 @@
-// --- Wrap entire script in an IIFE to avoid polluting the global scope ---
+// --- Wrap entire script in an IIFE to avoid polluting the global scope GREY---
 (() => {
     'use strict';
 
