@@ -3,490 +3,377 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Songwriter's Pad</title>
+    <title>Happy Machines + Humans</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
-    <script>
-        // Set theme on initial load - Light mode is the default
-        if (localStorage.theme === 'dark') {
-            document.documentElement.classList.add('dark')
-        } else {
-            document.documentElement.classList.remove('dark')
-        }
-    </script>
-    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #111827; color: #F3F4F6; }
+        .modal-backdrop { background-color: rgba(0, 0, 0, 0.75); backdrop-filter: blur(4px); }
+        .action-button, .module-button, .structure-button { transition: all 0.2s ease-in-out; border: 1px solid #374151; }
+        .action-button:hover, .module-button:hover, .structure-button:hover { border-color: #6366f1; transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); }
+        .module-button.selected { background-color: #4f46e5; color: #ffffff; border-color: #4f46e5; }
+        .dashboard-grid { display: grid; gap: 1.5rem; grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        @media (min-width: 768px) { .dashboard-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+        @media (min-width: 1024px) { .dashboard-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+        .card { background-color: #1f2937; border-radius: 0.75rem; padding: 1.5rem; transition: transform 0.2s ease, box-shadow 0.2s ease; text-decoration: none; color: #d1d5db; border: 1px solid #374151; display: flex; flex-direction: column; }
+        .card:hover:not(.disabled) { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); border-color: #4f46e5; }
+        .card.disabled { opacity: 0.5; cursor: not-allowed; }
+        .card-badge { align-self: flex-start; border-radius: 9999px; padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 500; margin-bottom: 0.75rem; }
+        .card-title { font-size: 1.25rem; font-weight: 700; color: #ffffff; }
+        .card-description { flex-grow: 1; margin-top: 0.5rem; font-size: 0.875rem; line-height: 1.5; }
+        .card-footer { margin-top: 1rem; font-weight: 600; color: #f97316; }
+        .structure-tag { background-color: #374151; color: #d1d5db; cursor: grab; transition: background-color 0.2s ease-in-out; }
+        .structure-tag:hover { background-color: #4338ca; }
+        .structure-tag.sortable-ghost { background-color: #4f46e5; opacity: 0.5; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
+    </style>
 </head>
-<body>
-    <div id="toast-notification" class="fixed top-20 right-5 bg-green-600 text-white py-2 px-5 rounded-lg shadow-lg opacity-0 translate-x-full transition-all duration-300">
-        Song data loaded successfully!
-    </div>
+<body class="antialiased flex flex-col min-h-screen">
 
-    <button id="theme-toggle" title="Toggle Dark/Light Mode" class="fixed top-24 right-4 z-50 p-2 rounded-full bg-white dark:bg-gray-800 shadow-lg text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-violet-500">
-        <svg id="theme-toggle-sun" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
-        <svg id="theme-toggle-moon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
-    </button>
-    <input type="file" id="json-upload" class="hidden" accept=".json">
+    <header class="bg-gray-900/80 backdrop-blur-sm border-b border-gray-700 sticky top-0 z-50"><nav class="container mx-auto px-6 py-4 flex justify-between items-center"><div class="text-2xl font-bold text-white tracking-wider">HAPPY MACHINES + HUMANS</div><div class="flex items-center space-x-4"><div id="user-info" class="hidden items-center space-x-4"><span class="text-sm text-gray-300"></span></div><button id="login-btn" class="bg-orange-600 text-white font-bold py-2 px-4 rounded-lg text-sm hover:bg-orange-700">Login / Sign Up</button><button id="logout-btn" class="hidden bg-gray-600 text-white font-bold py-2 px-4 rounded-lg text-sm hover:bg-gray-700">Logout</button></div></nav></header>
 
-    <div class="container mx-auto px-4 py-12 max-w-4xl">
-        <header class="text-center mb-12 relative">
-            <h1 class="text-4xl md:text-5xl font-bold text-violet-800 dark:text-violet-400">A Guide to Crafting Your First Song</h1>
-            <p class="mt-4 text-lg text-gray-600 dark:text-gray-400">An interactive guide for anyone who has never written a song or who just needs some tips.<span class="id-rationale-container">
-                <span class="id-rationale-icon">i</span>
-                <span class="id-rationale-tooltip tooltip-bottom">
-                    <b>ID Rationale:</b>The target learners are college students. They are digital natives who are comfortable with interactive media but may lack formal music training. The primary motivation is the desire for a creative outlet for self-expression. The tone and activities are designed to be engaging, low-stakes, and empowering.This guide is designed for absolute beginners, but the principles are useful for all skill levels.
-                </span>
-            </span></p>
-        </header>
-
-        <main>
-            <section class="guide-section">
-                <h2 class="text-3xl font-bold mb-4">The Fundamentals</h2>
-                <span class="id-rationale-container">
-                    <span class="id-rationale-icon">i</span>
-                    <span class="id-rationale-tooltip">
-                        <b>ID Rationale:</b>This interactive guide was built using the ADDIE model of instructional design. The goal was not just to create a tool, but to design a complete learning experience. The initial Analysis phase, which informs the entire project, is outlined in various tips below.
-                    </span>
-                </span>
-                <h3 class="text-2xl font-semibold mb-2">The Golden Rule: Unity in Songwriting</h3>
-                <p class="mb-6">Every element of your song – lyrics, melody, rhythm, and vibe – should serve a central idea or feeling. Think of it like a thesis statement in an essay: everything else supports it.</p>
-                
-                <h3 class="text-2xl font-semibold mb-2">Song Structure: A Basic Framework</h3>
-                <p class="mb-4">Many modern songs follow a predictable pattern. Visualizing this structure helps in organizing your ideas.</p>
-
-                <div class="text-center structure-diagram bg-gray-100 p-4 rounded-lg font-mono text-sm md-text-base mb-6">
-                Intro
-                    <span class="id-rationale-container">
-                        <span class="id-rationale-icon">i</span>
-                        <span class="id-rationale-tooltip">
-                            <b>Intro:</b> The intro is the musical opening of a song that comes before the vocals begin. Its primary function is to establish the mood, key, and tempo, grabbing the listener's attention. Example: The iconic opening guitar riff of "Sweet Child O' Mine" by Guns N' Roses.
-                        </span>
-                    </span>
-
-                    &rarr; Verse 1
-                    <span class="id-rationale-container">
-                        <span class="id-rationale-icon">i</span>
-                        <span class="id-rationale-tooltip">
-                            <b>Verse:</b> The verse is the section of the song that tells the story, provides details, and moves the narrative forward. Verses typically have different lyrics each time they appear but share the same melody. Example: "Ma'am, I know you don't know me from Adam / But these hand prints on the front steps are mine" from "The House That Built Me" sets up the story.
-                        </span>
-                    </span>
-
-                    &rarr; Chorus
-                    <span class="id-rationale-container">
-                        <span class="id-rationale-icon">i</span>
-                        <span class="id-rationale-tooltip">
-                            <b>Chorus:</b> The chorus is the central, most memorable part of a song. It contains the main idea or hook and is repeated multiple times with the same lyrics and melody. Its function is to summarize the song's core message. Example: The repeated refrain "Live like you were dyin'" in Tim McGraw's song, which captures the entire theme.
-                        </span>
-                    </span>
-
-                    &rarr; Verse 2
-
-                    &rarr; Chorus
-
-                    &rarr; Bridge
-                    <span class="id-rationale-container">
-                        <span class="id-rationale-icon">i</span>
-                        <span class="id-rationale-tooltip">
-                            <b>Bridge:</b> The bridge is a transitional section that provides a contrast to the verse and chorus. It often introduces a new musical or lyrical perspective, a shift in emotion, or a key change, before leading back to a final chorus. Example: In "The House That Built Me," the bridge reveals the ultimate reason for the singer's visit: "I got lost in this whole world and forgot who I am".
-                        </span>
-                    </span>
-
-                    &rarr; Chorus
-                
-                    &rarr; Outro
-                    <span class="id-rationale-container">
-                        <span class="id-rationale-icon">i</span>
-                        <span class="id-rationale-tooltip">
-                            <b>Outro:</b> The outro (from "out-troduction") is the concluding section of a song. It provides a sense of closure, often by repeating the main hook, fading out, or introducing a final musical or lyrical thought. Example: The extended guitar solo at the end of "Hotel California" by the Eagles that slowly fades to black.
-                        </span>
-                    </span>
-                </div>
-
-                <h3 class="text-2xl font-semibold mb-2">Lyrical Technique: Showing, Not Telling</h3>
-                <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
-                    <p class="flex-1">Instead of stating an emotion, show it through descriptive language and sensory details.</p>
-                    <div class="flex-shrink-0 flex gap-4">
-                        <div class="image-cropper"><img src="assets/images/0001.png" alt="Image illustrating lyrical technique"></div>
-                        <div class="image-cropper"><img src="assets/images/0002.png" alt="Image illustrating lyrical technique"></div>
-                    </div>
-                </div>
-                <div class="example-box">
-                    <p>Instead of telling the listener, "I'm so happy to be free from school," you can <strong>show</strong> it with action:</p>
-                    <p class="mt-2 pl-4 border-l-2 border-gray-400 dark:border-gray-500">
-                        <em>Throwing all my books on the ground, 
-                            <span class="tooltip-container">(8)
-                                <span class="tooltip-text">This number indicates the syllable count for the lyric line.</span>
-                            </span>
-                            <br>
-                            Not another classroom to be found. 
-                            <span class="tooltip-container">(8)
-                                <span class="tooltip-text">This number indicates the syllable count for the lyric line.</span>
-                            </span>
-                        </em>
+    <main class="flex-grow flex flex-col">
+        <div id="public-content">
+            <section id="hero-section" class="text-center py-20 md:py-24 bg-gray-900"><div class="container mx-auto px-6"><h1 class="text-4xl md:text-6xl font-extrabold text-white leading-tight"><span class="text-orange-500 inline-block mb-4">Human Focused</span><br>AI Collaboration</h1><a href="#" id="explore-apps-btn" class="mt-10 inline-block bg-orange-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-orange-700 transition-transform duration-300 transform hover:scale-105">Sign up for free access to advanced tools</a></div></section>
+            
+            <section id="interactive-demo" class="text-center py-20 bg-gray-800 border-t border-b border-gray-700">
+                <div class="container mx-auto px-6">
+                    <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">Interactive Harmonic Mixing</h2>
+                    <p class="text-lg text-gray-400 max-w-3xl mx-auto mb-8">
+                        Explore the relationships between musical keys in this interactive physics sandbox. Drag the nodes to see their compatible keys follow. Double-click to focus on a key and its direct relatives.
                     </p>
+                    <button id="launch-visualizer-btn" class="bg-purple-600 text-white font-bold py-3 px-8 rounded-lg text-lg hover:bg-purple-700 transition-transform duration-300 transform hover:scale-105">
+                        Launch The Visualizer
+                    </button>
                 </div>
             </section>
 
-            <section class="guide-section">
-                <h2 class="text-3xl font-bold mb-4">The Parts of a Song</h2>
-                <div class="space-y-12">
-                    <div>
-                        <h3 class="text-xl font-semibold">Verse 1: Setting the Scene</h3>
-                        <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
-                            <p class="flex-1">Introduce your story or theme. What's the context? Think back to when you were in third grade on the last day of school.</p>
-                            <div class="flex-shrink-0 flex gap-4">
-                                <div class="image-cropper"><img src="assets/images/0003.png" alt="Image illustrating a song verse"></div>
-                                <div class="image-cropper"><img src="assets/images/0004.png" alt="Image illustrating a song verse"></div>
-                            </div>
-                        </div>
-                        <div class="example-box">
-                            <p><strong>Example (Theme: Summer Freedom):</strong></p>
-                            <p class="mt-2 pl-4 border-l-2 border-gray-400 dark:border-gray-500"><em>The final bell is ringing loud, (8)<br>I'm running out into the crowd. (8)<br>Throwing all my books on the ground, (8)<br>Not another classroom to be found. (8)</em></p>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold">Chorus: Main Idea</h3>
-                        <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
-                            <p class="flex-1">Summarize your theme in a few lines. This is your core message.</p>
-                             <div class="flex-shrink-0 flex gap-4">
-                                <div class="image-cropper"><img src="assets/images/0005.png" alt="Image illustrating a song chorus"></div>
-                                <div class="image-cropper"><img src="assets/images/0006.png" alt="Image illustrating a song chorus"></div>
-                            </div>
-                        </div>
-                        <div class="example-box">
-                             <p><strong>Example:</strong></p>
-                            <p class="mt-2 pl-4 border-l-2 border-gray-400 dark:border-gray-500"><em>I wish this summer would never end, (9)<br>'Cause the sun is high and school is out, (8)<br>This is what I dream about. (7)</em></p>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold">Verse 2: Developing the Story</h3>
-                        <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
-                            <p class="flex-1">Add new details or move the story forward. What happens next?</p>
-                            <div class="flex-shrink-0 flex gap-4">
-                                <div class="image-cropper"><img src="assets/images/0007.png" alt="Image illustrating a second verse"></div>
-                                <div class="image-cropper"><img src="assets/images/0008.png" alt="Image illustrating a second verse"></div>
-                            </div>
-                        </div>
-                        <div class="example-box">
-                             <p><strong>Example:</strong></p>
-                            <p class="mt-2 pl-4 border-l-2 border-gray-400 dark:border-gray-500"><em>Now we're heading to the lake, (7)<br>The biggest cannonballs we'll make. (8)<br>No more homework, for goodness sake, (8)<br>Just ice cream and a chocolate shake. (8)</em></p>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold">Bridge: A Fresh Perspective</h3>
-                        <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
-                            <p class="flex-1">Add a twist or shift in mood. This is the turning point.</p>
-                            <div class="flex-shrink-0 flex gap-4">
-                                <div class="image-cropper"><img src="assets/images/0009.png" alt="Image illustrating a song bridge"></div>
-                                <div class="image-cropper"><img src="assets/images/0010.png" alt="Image illustrating a song bridge"></div>
-                            </div>
-                        </div>
-                        <div class="example-box">
-                             <p><strong>Example:</strong></p>
-                            <p class="mt-2 pl-4 border-l-2 border-gray-400 dark:border-gray-500"><em>The sun goes down in pink and gold, (8)<br>A perfect story to be told. (8)<br>We're gathered 'round a campfire's light, (8)<br>And everything just feels so right. (8)</em></p>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold">Intro &amp; Outro (Optional Bookends)</h3>
-                        <div class="flex flex-col md:flex-row gap-6 items-center mb-8">
-                            <p class="flex-1">An <strong>Intro</strong> sets the song's mood and can be a sound effect, a musical riff, or a short lyric. An <strong>Outro</strong> provides closure and can be a fade-out, a final sound, or a repeated key phrase.</p>
-                            <div class="flex-shrink-0 flex gap-4">
-                                <div class="image-cropper"><img src="assets/images/0011.png" alt="Image for intro/outro"></div>
-                                <div class="image-cropper"><img src="assets/images/0012.png" alt="Image for intro/outro"></div>
-                            </div>
-                        </div>
-                         <div class="example-box">
-                             <p><strong>Intro Example:</strong> <em>"Just one more minute..."</em><br>
-                             <strong>Outro Example:</strong> <em>"Never, ever end..."</em></p>
-                        </div>
-                    </div>
-                </div>
-            </section>
+            <section id="tools-preview" class="py-20 bg-gray-900 border-t border-b border-gray-800"><div class="container mx-auto px-6"><div id="public-dashboard-preview" class="max-w-7xl mx-auto dashboard-grid"></div></div></section>
             
-            <section class="guide-section">
-                <h2 class="text-3xl font-bold mb-4">Musical Choices: The Principle of Prosody</h2>
-                <span class="id-rationale-container">
-                    <span class="id-rationale-icon">i</span>
-                    <span class="id-rationale-tooltip"><b>ID Rationale:</b> This section uses active learning. Instead of just reading, learners make choices (tempo, key). This interaction reinforces the concepts and connects them to the learner's own creative process, increasing engagement.</span>
-                </span>
-                <p class="mb-6"><strong>Prosody</strong> is the art of making sure every musical choice supports the lyrical emotion. If your lyrics are sad, the music should sound sad. If your lyrics are happy, the music should sound happy.</p>
-                <div class="space-y-6">
-                    <div>
-                        <h3 class="text-xl font-semibold">Tempo: The Speed of the Story</h3>
-                        <p>The pace or speed of the music, often measured in Beats Per Minute (BPM).</p>
-                        <ul class="list-disc list-inside mt-2 space-y-1">
-                            <li><strong>Fast (Allegro, ~120+ BPM):</strong> High energy, excitement, joy.</li>
-                            <li><strong>Slow (Adagio, ~60-80 BPM):</strong> Sadness, intimacy, reflection.</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold">Key: The Song's Emotional Color</h3>
-                        <p>A song's "key" is its musical center of gravity, which can be thought of as either Major or Minor.</p>
-                        <div class="flex flex-col md:flex-row gap-6 items-center mt-4">
-                            <div class="flex-grow w-full">
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Key Type</th>
-                                            <th>Sound/Feeling</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td><strong>Major</strong></td>
-                                            <td>Bright, Happy, Open</td>
-                                        </tr>
-                                         <tr>
-                                            <td><strong>Minor</strong></td>
-                                            <td>Darker, Sad, Dramatic</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div class="flex gap-4">
-                                <div class="image-cropper">
-                                    <img src="assets/images/major-key.png" alt="Vibrant, abstract representation of a Major key's happy mood">
-                                </div>
-                                <div class="image-cropper">
-                                    <img src="assets/images/minor-key.png" alt="Darker, moody representation of a Minor key's dramatic feel">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold">Instrumentation: The Cast of Characters</h3>
-                        <p>The specific instruments chosen for the song. An acoustic guitar can feel intimate, while a synthesizer can feel modern and atmospheric.</p>
-                    </div>
-                </div>
-            </section>
+            <section id="videos" class="py-20 bg-gray-800"><div class="container mx-auto px-6"><div class="text-center mb-12"><h2 class="text-3xl md:text-4xl font-bold text-white">Human + AI Video</h2></div><div class="max-w-4xl mx-auto mb-16"><div class="aspect-video bg-black rounded-lg shadow-2xl overflow-hidden"><iframe src="https://www.youtube.com/embed/XjUvzRoMPkg" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen class="w-full h-full"></iframe></div></div><div class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8"><div><h3 class="text-lg font-semibold text-white mb-3 text-center"></h3><video controls class="w-full rounded-lg shadow-lg"><source src="videos/video1.mp4" type="video/mp4">Your browser does not support the video tag.</video></div><div><h3 class="text-lg font-semibold text-white mb-3 text-center"></h3><video controls class="w-full rounded-lg shadow-lg"><source src="videos/video2.mp4" type="video/mp4">Your browser does not support the video tag.</video></div><div><h3 class="text-lg font-semibold text-white mb-3 text-center"></h3><video controls class="w-full rounded-lg shadow-lg"><source src="videos/video3.mp4" type="video/mp4">Your browser does not support the video tag.</video></div><div><h3 class="text-lg font-semibold text-white mb-3 text-center"></h3><video controls class="w-full rounded-lg shadow-lg"><source src="videos/video4.mp4" type="video/mp4">Your browser does not support the video tag.</video></div></div></div></section>
 
-            <section class="guide-section" id="step1">
-                <h2 class="text-3xl font-bold mb-2">Step 1: The Story Interview (Your Turn to Plan)</h2>
-                <span class="id-rationale-container">
-                    <span class="id-rationale-icon">i</span>
-                    <span class="id-rationale-tooltip"><b>ID Rationale:</b> The Problem: "Blank Page" Paralysis.
-Many aspiring songwriters feel overwhelmed by the lack of structure when starting. They have ideas but don't know the basic building blocks to organize them. This guide aims to solve that problem by providing a clear, step-by-step framework. 
-This exercise, Step 1, is an example of scaffolding. It breaks down the complex task of "writing a song" into simple, non-musical questions. This builds the learner's confidence and provides the raw material for the next, more structured step.</span>
-                </span>
-                <p class="mb-6">For this exercise, we'll use a specific prompt: <strong>Write a song about a place you've never been but would love to visit.</strong> Answer the following questions to build your story. Don't worry about lyrics yet!</p>
-                <div class="space-y-6">
-                    <div>
-                        <h3 class="text-xl font-semibold mb-2">1. The Main Idea</h3>
-                        <p class="mb-2">What is the core feeling or message of your song? This will become your <strong>Chorus</strong>.</p>
-                        <textarea id="main-idea" rows="4" placeholder="e.g., The excitement of finally seeing Paris, the peaceful feeling of a hidden beach..."></textarea>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold mb-2">2. The Opening Scene</h3>
-                        <p class="mb-2">Where are you <strong>now</strong> while you're dreaming of this place? This will be your <strong>Verse 1</strong>.</p>
-                        <textarea id="opening-scene" rows="4" placeholder="e.g., Sitting in a boring class, stuck in traffic on the highway, looking out my bedroom window..."></textarea>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold mb-2">3. The Story's Development</h3>
-                        <p class="mb-2">Describe the place you're dreaming of. What would you do there? This will become your <strong>Verse 2</strong>.</p>
-                        <textarea id="story-development" rows="4" placeholder="e.g., Walking through cobblestone streets, hearing the waves crash on the shore, seeing the neon lights of the city..."></textarea>
-                    </div>
-                     <div>
-                        <h3 class="text-xl font-semibold mb-2">4. The Turning Point</h3>
-                        <p class="mb-2">What changes from just dreaming to planning or longing? This will become your <strong>Bridge</strong>.</p>
-                        <textarea id="turning-point" rows="4" placeholder="e.g., A moment of realizing I need to make this trip happen, a bittersweet thought about why I can't go yet..."></textarea>
-                    </div>
-                </div>
-            </section>
-
-            <section class="guide-section" id="step2">
-                <h2 class="text-3xl font-bold mb-2">Step 2: Now, Let's Write Your Lyrics</h2>
-                <span class="id-rationale-container">
-                    <span class="id-rationale-icon">i</span>
-                    <span class="id-rationale-tooltip">
-                        <b>ID Rationale:</b> This step applies the concepts from Step 1, using a structured 'puzzle' to reduce anxiety and encourage creativity.
-                    </span>
-                </span>
-                <div class="mb-6">
-                    <h3 class="text-xl font-semibold mb-2">A Note on Syllables (And How to "Cheat")</h3>
-                     <p>Syllables give your lyrics a consistent rhythm. The counts below are a target, but you can easily adjust a line.</p>
-                     <ul class="list-disc list-inside mt-2 space-y-1">
-                         <li><strong>To reduce syllables:</strong> Use contractions (e.g., change "it is" to "it's").</li>
-                         <li><strong>To add syllables:</strong> Add small words like "oh," "well," or "just."</li>
-                     </ul>
-                </div>
-                <div class="space-y-8">
-                    <div>
-                        <h3 class="text-xl font-semibold">1. Draft Your Chorus:</h3>
-                        <p class="mb-2"><strong>Reminder:</strong> This is your main idea, the part everyone will sing along to. It should be memorable and will likely have the most energy in your song.</p>
-                        <div class="reminder-box"><strong>Reminder:</strong> Your main idea was "<em id="context-chorus">...</em>"</div>
-                        <span class="id-rationale-container">
-                            <span class="id-rationale-icon">i</span>
-                            <span class="id-rationale-tooltip"><b>ID Rationale:</b> This is a form of immediate feedback and reinforcement. By pulling the learner's own words from the previous step, it reduces cognitive load (they don't have to remember their idea) and directly connects their initial plan to the lyric-writing task.</span>
-                        </span>
-                        <p class="mb-4"><strong>Exercise:</strong> Turn your Main Idea into the six-line lyric puzzle below. <br>
-                        Use the labels on the right as your guide for each line:
-                        The Number (e.g., 8) is your target syllable count.
-                        The Letter (e.g., A) is the rhyme group. Lines with the same letter must rhyme. Lines with different letters do not need to rhyme.
-                        For example, the two lines labeled (8A) should each have about 8 syllables and should rhyme with each other.</p>
-                        <div id="chorus-lyrics">
-                            <div class="lyric-line"><textarea rows="1" data-line="1"></textarea><span class="lyric-line-label">(8A)</span></div>
-                            <div class="lyric-line"><textarea rows="1" data-line="2"></textarea><span class="lyric-line-label">(8A)</span></div>
-                            <div class="lyric-line"><textarea rows="1" data-line="3"></textarea><span class="lyric-line-label">(7B)</span></div>
-                            <div class="lyric-line"><textarea rows="1" data-line="4"></textarea><span class="lyric-line-label">(8C)</span></div>
-                            <div class="lyric-line"><textarea rows="1" data-line="5"></textarea><span class="lyric-line-label">(8C)</span></div>
-                            <div class="lyric-line"><textarea rows="1" data-line="6"></textarea><span class="lyric-line-label">(7B)</span></div>
-                        </div>
-                    </div>
-                     <div>
-                        <h3 class="text-xl font-semibold">2. Draft Verse 1:</h3>
-                        <p class="mb-2"><strong>Reminder:</strong> This verse sets the scene for your story. The energy here should establish the initial mood of your song—is it thoughtful, energetic, somber?</p>
-                        <div class="reminder-box"><strong>Reminder:</strong> Your idea for the opening scene was "<em id="context-verse1">...</em>"</div>
-                        <p class="mb-4"><strong>Exercise:</strong> Turn your Opening Scene into the four-line lyric puzzle below.</p>
-                        <div id="verse1-lyrics">
-                            <div class="lyric-line"><textarea rows="1" data-line="1"></textarea><span class="lyric-line-label">(8A)</span></div>
-                            <div class="lyric-line"><textarea rows="1" data-line="2"></textarea><span class="lyric-line-label">(8A)</span></div>
-                            <div class="lyric-line"><textarea rows="1" data-line="3"></textarea><span class="lyric-line-label">(8B)</span></div>
-                            <div class="lyric-line"><textarea rows="1" data-line="4"></textarea><span class="lyric-line-label">(8B)</span></div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold">3. Draft Verse 2:</h3>
-                        <p class="mb-2"><strong>Reminder:</strong> This is where you develop the story and add new details. The energy can build from Verse 1, or it can maintain a similar level as you provide more information.</p>
-                         <div class="reminder-box"><strong>Reminder:</strong> Your idea for the story's development was "<em id="context-verse2">...</em>"</div>
-                        <p class="mb-4"><strong>Exercise:</strong> Turn your Story's Development into the four-line lyric puzzle below.</p>
-                        <div id="verse2-lyrics">
-                            <div class="lyric-line"><textarea rows="1" data-line="1"></textarea><span class="lyric-line-label">(8A)</span></div>
-                            <div class="lyric-line"><textarea rows="1" data-line="2"></textarea><span class="lyric-line-label">(7B)</span></div>
-                            <div class="lyric-line"><textarea rows="1" data-line="3"></textarea><span class="lyric-line-label">(8A)</span></div>
-                            <div class="lyric-line"><textarea rows="1" data-line="4"></textarea><span class="lyric-line-label">(7B)</span></div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold">4. Draft Your Bridge:</h3>
-                        <p class="mb-2"><strong>Reminder:</strong> The bridge is your turning point—a "fresh perspective". The energy often shifts here. It might get quieter and more reflective, or it could build tension leading into the final, powerful chorus.</p>
-                        <div class="reminder-box"><strong>Reminder:</strong> Your idea for the turning point was "<em id="context-bridge">...</em>"</div>
-                        <p class="mb-4"><strong>Exercise:</strong> Turn your Turning Point into two to four lines that introduce the new feeling or thought.</p>
-                        <div id="bridge-lyrics">
-                             <div class="lyric-line"><textarea rows="1" data-line="1" placeholder="Line 1"></textarea></div>
-                             <div class="lyric-line"><textarea rows="1" data-line="2" placeholder="Line 2"></textarea></div>
-                             <div class="lyric-line"><textarea rows="1" data-line="3" placeholder="Line 3 (optional)"></textarea></div>
-                             <div class="lyric-line"><textarea rows="1" data-line="4" placeholder="Line 4 (optional)"></textarea></div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold">5. Draft Your Intro &amp; Outro:</h3>
-                        <p class="mb-2">Bookend your song. These parts are very flexible and <strong>don't need to rhyme</strong>. Their main goal is to set the mood or provide closure, so a simple spoken phrase works perfectly. If you do want a rhyme, a simple couplet (AA) is best.</p>
-                        <div class="flex flex-col md:flex-row gap-4">
-                            <textarea id="intro-lyrics" class="flex-1" rows="2" placeholder="Intro: e.g., 'Just one more minute...'"></textarea>
-                            <textarea id="outro-lyrics" class="flex-1" rows="2" placeholder="Outro: e.g., 'Never, ever end...'"></textarea>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="guide-section" id="step3">
-                <h2 class="text-3xl font-bold mb-2">Step 3: Define Your Sound</h2>
-                <p class="mb-6">Now let's think about the music. Based on your lyrics and the feeling of your song, answer the questions below to create a guide for the musicians.</p>
-                <div class="space-y-8">
-                    <div>
-                        <h3 class="text-xl font-semibold mb-2">1. What is the overall feeling (tempo) of your song?</h3>
-                        <div id="tempo-choices" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <button class="sound-choice-btn" data-group="tempo" data-value="Fast and energetic (approx. 120-140 BPM)">Fast &amp; Energetic</button>
-                            <button class="sound-choice-btn" data-group="tempo" data-value="A steady, neutral pace (approx. 90-110 BPM)">Steady Pace</button>
-                            <button class="sound-choice-btn" data-group="tempo" data-value="Slow and thoughtful (approx. 70-90 BPM)">Slow &amp; Thoughtful</button>
-                        </div>
-                    </div>
-                     <div>
-                        <h3 class="text-xl font-semibold mb-2">2. What is the emotional color (key)?</h3>
-                         <div id="key-choices" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <button class="sound-choice-btn" data-group="key" data-value="Major (Bright, Happy)">Bright &amp; Happy</button>
-                            <button class="sound-choice-btn" data-group="key" data-value="Minor (Darker, Sad, Dramatic)">Dark &amp; Dramatic</button>
-                        </div>
-                    </div>
-                     <div>
-                        <h3 class="text-xl font-semibold mb-2">3. What instruments do you imagine? (Choose a few)</h3>
-                         <div id="instrument-choices" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            <button class="sound-choice-btn" data-group="instrument" data-value="Acoustic Guitar" aria-pressed="false">Acoustic Guitar</button>
-                            <button class="sound-choice-btn" data-group="instrument" data-value="Electric Guitar" aria-pressed="false">Electric Guitar</button>
-                            <button class="sound-choice-btn" data-group="instrument" data-value="Piano" aria-pressed="false">Piano</button>
-                            <button class="sound-choice-btn" data-group="instrument" data-value="Drums & Bass" aria-pressed="false">Drums & Bass</button>
-                            <button class="sound-choice-btn" data-group="instrument" data-value="Synthesizers" aria-pressed="false">Synthesizers</button>
-                            <button class="sound-choice-btn" data-group="instrument" data-value="Strings" aria-pressed="false">Strings</button>
-                            <button class="sound-choice-btn" data-group="instrument" data-value="Ukulele" aria-pressed="false">Ukulele</button>
-                            <button class="sound-choice-btn" data-group="instrument" data-value="Brass Section" aria-pressed="false">Brass Section</button>
-                            <button class="sound-choice-btn" data-group="instrument" data-value="Woodwinds" aria-pressed="false">Woodwinds</button>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold mb-2">4. Who is singing this?</h3>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div id="vocalist-choices">
-                                <h4 class="font-semibold mb-2 text-base">Vocalist</h4>
-                                <div class="flex gap-4">
-                                    <button class="sound-choice-btn flex-1" data-group="vocalist" data-value="Female Vocalist">Female</button>
-                                    <button class="sound-choice-btn flex-1" data-group="vocalist" data-value="Male Vocalist">Male</button>
-                                </div>
-                            </div>
-                            <div id="vocal-style-choices">
-                                <h4 class="font-semibold mb-2 text-base">Vocal Style (Choose a few)</h4>
-                                <div class="flex gap-4">
-                                    <button class="sound-choice-btn flex-1" data-group="vocal-style" data-value="Powerful" aria-pressed="false">Powerful</button>
-                                    <button class="sound-choice-btn flex-1" data-group="vocal-style" data-value="Emotional" aria-pressed="false">Emotional</button>
-                                    <button class="sound-choice-btn flex-1" data-group="vocal-style" data-value="Layered" aria-pressed="false">Layered</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-semibold mb-2">5. Other Considerations</h3>
-                        <p class="mb-2 text-gray-600 dark:text-gray-400">Jot down any other ideas for genre, theme, mood, rhythm, bassline, etc.</p>
-                        <textarea id="other-considerations" rows="4" placeholder="e.g., Genre: Indie Folk, Mood: Nostalgic and hopeful, Rhythm: A simple 4/4 beat with a tambourine..."></textarea>
-                    </div>
-                </div>
-            </section>
+            <section id="socials" class="py-12 bg-gray-800 border-t border-gray-700"><div class="container mx-auto px-6"><div class="flex justify-center"><a href="https://www.instagram.com/happymachinesandhumans/" target="_blank" rel="noopener noreferrer" class="text-white hover:text-orange-500 transition-colors duration-300"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 0C5.829 0 5.556.01 4.703.048 3.85.088 3.269.222 2.76.42a3.917 3.917 0 0 0-1.417.923A3.927 3.927 0 0 0 .42 2.76C.222 3.268.087 3.85.048 4.703.01 5.555 0 5.827 0 8.001c0 2.172.01 2.444.048 3.297.04.852.174 1.433.372 1.942.205.526.478.972.923 1.417.444.445.89.719 1.416.923.51.198 1.09.333 1.942.372C5.555 15.99 5.827 16 8 16s2.444-.01 3.297-.048c.852-.04 1.433-.174 1.942-.372.526-.205.972-.478 1.417-.923.445-.444.718-.891.923-1.417.198-.51.333-1.09.372-1.942C15.99 10.445 16 10.173 16 8s-.01-2.445-.048-3.297c-.04-.852-.174-1.433-.372-1.942a3.927 3.927 0 0 0-.923-1.417A3.917 3.917 0 0 0 13.24.42c-.51-.198-1.09-.333-1.942-.372C10.445.01 10.173 0 8 0zm0 1.442c2.136 0 2.389.007 3.232.046.78.035 1.204.166 1.486.275.373.145.64.319.92.599.28.28.453.546.598.92.11.282.24.705.275 1.486.039.843.047 1.096.047 3.232s-.008 2.389-.047 3.232c-.035.78-.166 1.203-.275 1.485a2.47 2.47 0 0 1-.599.919c-.28.28-.546.453-.92.598-.282.11-.705.24-1.485.276-.843.038-1.096.047-3.232.047s-2.39-.009-3.233-.047c-.78-.036-1.203-.166-1.485-.276a2.478 2.478 0 0 1-.92-.598 2.48 2.48 0 0 1-.6-.92c-.109-.282-.24-.705-.275-1.485-.038-.843-.046-1.096-.046-3.232s.008-2.389.046-3.232c.036-.78.166-1.204.276-1.486.145-.373.319-.64.599-.92.28-.28.546-.453.92-.598.282-.11.705.24 1.485-.276.843-.038 1.096-.047 3.232-.047zM8 3.882a4.118 4.118 0 1 0 0 8.236 4.118 4.118 0 0 0 0-8.236zm0 6.792a2.674 2.674 0 1 1 0-5.348 2.674 2.674 0 0 1 0 5.348zm3.858-6.836a.96.96 0 1 0 0-1.92.96.96 0 0 0 0 1.92z"></path></svg></a></div></div></section>
             
-         <section class="guide-section">
-                <h2 class="text-3xl font-bold mb-4 text-center">Almost Done! Name Your Song
-                    <span class="id-rationale-container">
-                        <span class="id-rationale-icon">i</span>
-                        <span class="id-rationale-tooltip">
-                            <b>ID Rationale:</b> Why Name the Song Last? Giving a song a title helps solidify its core identity. While some songwriters start with a title, this guide saves that step for the end to encourage creative exploration first, preventing fixation on a title before the song's ideas have a chance to develop.
-                        </span>
-                    </span>
-                </h2>
-                <input 
-                    type="text" 
-                    id="song-title" 
-                    class="song-title-input w-full p-4 text-2xl text-center border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition" 
-                    placeholder="Enter Your Song Title Here">
-            </section>
+            <section id="music" class="py-20 bg-gray-900"><div class="container mx-auto px-6"><div class="text-center mb-12"><h2 class="text-3xl md:text-4xl font-bold text-white">Human + AI - Original Music</h2></div><div class="max-w-3xl mx-auto space-y-8"><div class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4"><span class="text-lg font-semibold text-orange-400">Pulling at Threads</span><audio controls class="w-full"><source src="music/Pulling_at_Threads.mp3" type="audio/mpeg">Your browser does not support the audio element.</audio></div><div class="bg-gray-800 p-4 rounded-lg flex items-center space-x-4"><span class="text-lg font-semibold text-orange-400">Porto</span><audio controls class="w-full"><source src="music/Porto.mp3" type="audio/mpeg">Your browser does not support the audio element.</audio></div></div></div></section>
+        </div>
 
-            <div id="error-message-container" class="my-6"></div>
+        <section id="app-dashboard" class="hidden flex-col items-center justify-center flex-grow p-6 md:p-12"><div class="w-full max-w-7xl"><h1 class="text-4xl font-bold text-white text-center mb-2">Member Dashboard</h1><p class="text-gray-400 text-center mb-10">Select an application to launch.</p><div class="dashboard-grid"></div></div></section>
 
-            <div class="flex flex-col sm:flex-row justify-center gap-4 items-center">
-                <button id="save-progress-btn" class="action-btn btn-save">Save Progress</button>
-                <button id="generate-btn" class="action-btn btn-assemble">Assemble My Song!</button>
-                <button id="new-load-song-btn" class="action-btn btn-load">Load Progress</button>
+        <div id="protected-content" class="hidden">
+            <section id="lofi-builder" class="hidden p-4 sm:p-6 md:p-8"></section>
+        </div>
+        
+        <section id="harmonic-visualizer" class="hidden fixed inset-0 bg-gray-900 z-50"></section>
+    </main>
+
+    <footer class="bg-gray-800 border-t border-gray-700 py-8"><div class="container mx-auto px-6 text-center text-gray-400"><p>&copy; 2025 Happy Machines + Humans. All Rights Reserved.</p></div></footer>
+
+    <div id="auth-modal" class="fixed inset-0 z-50 items-center justify-center p-4 hidden modal-backdrop"><div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md relative"><button id="close-auth-modal-btn" class="absolute top-4 right-4 text-gray-400 hover:text-white text-2xl">&times;</button><div id="auth-view"><h2 class="text-2xl font-bold text-white text-center mb-6">Member Access</h2><form id="login-form"><div class="mb-4"><label for="login-email" class="block text-sm text-gray-300 mb-2">Email</label><input type="email" id="login-email" class="w-full bg-gray-700 border-gray-600 text-white rounded-md" required></div><div class="mb-4"><label for="login-password" class="block text-sm text-gray-300 mb-2">Password</label><div class="relative"><input type="password" id="login-password" class="w-full bg-gray-700 border-gray-600 text-white rounded-md pr-10" required><button type="button" class="absolute inset-y-0 right-0 px-3 flex items-center" data-toggle-password="login-password"><svg class="h-5 w-5 show-pass-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg><svg class="h-5 w-5 hide-pass-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074L3.707 2.293zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /><path d="M2 10s3.939-7 8-7 8 7 8 7-3.939 7-8 7-8-7-8-7zm7.894-3.994A4 4 0 1113.95 10a4.002 4.002 0 01-3.95-3.994z" /></svg></button></div></div><div class="text-right mb-6"><a href="#" id="forgot-password-link" class="text-sm text-orange-400 hover:text-orange-500">Forgot Password?</a></div><button type="submit" class="w-full bg-orange-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-orange-700">Login</button><p id="login-error" class="text-red-400 text-sm mt-2 text-center"></p></form><div class="my-6 text-center text-gray-400 text-sm">OR</div><form id="signup-form"><div class="mb-4"><label for="signup-email" class="block text-sm text-gray-300 mb-2">Email</label><input type="email" id="signup-email" class="w-full bg-gray-700 border-gray-600 text-white rounded-md" required></div><div class="mb-4"><label for="signup-password" class="block text-sm text-gray-300 mb-2">Password</label><div class="relative"><input type="password" id="signup-password" class="w-full bg-gray-700 border-gray-600 text-white rounded-md pr-10" required><button type="button" class="absolute inset-y-0 right-0 px-3 flex items-center" data-toggle-password="signup-password"><svg class="h-5 w-5 show-pass-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10 12a2 2 0 100-4 2 2 0 000 4z" /><path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.022 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd" /></svg><svg class="h-5 w-5 hide-pass-icon hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074L3.707 2.293zM10 12a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /><path d="M2 10s3.939-7 8-7 8 7 8 7-3.939 7-8 7-8-7-8-7zm7.894-3.994A4 4 0 1113.95 10a4.002 4.002 0 01-3.95-3.994z" /></svg></button></div></div><div class="mb-6"><label for="signup-invite-code" class="block text-sm text-gray-300 mb-2">Invite Code</label><input type="text" id="signup-invite-code" class="w-full bg-gray-700 border-gray-600 text-white rounded-md" required></div><button type="submit" class="w-full bg-teal-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-teal-700">Create Account</button><p id="signup-error" class="text-red-400 text-sm mt-2 text-center"></p></form></div></div></div>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyCL_MojbteaHt06M7_E2004cgF9j4oYbxo", authDomain: "happymachines-website.firebaseapp.com", projectId: "happymachines-website", storageBucket: "happymachines-website.firebasestorage.app", messagingSenderId: "541478180206", appId: "1:541478180206:web:be5a34762b2f9a7dfe1d7f" };
+    
+    const appsData = [
+    { id: 'house-generator', badge: 'Prompt Tool', badgeColor: 'bg-teal-500 text-white', title: 'Definitive Song Analysis', description: 'Create industry level song briefs.', action: 'Open App &rarr;', disabled: true },
+        
+           
+            { id: 'restful-app', badge: 'Wellness', badgeColor: 'bg-green-500 text-white', title: 'Critical Thinking App', description: 'Analayze decision making and strategies in public relations managment.', action: 'Open App &rarr;', disabled: true },
+            { id: 'atiku-neuro', badge: 'AI Tool', badgeColor: 'bg-blue-500 text-white', title: 'Atiku Neuro', description: 'Improving the lives of Neurodivergent People', action: 'Open App &rarr;', disabled: true },
+            { id: 'speech-up', badge: 'Productivity', badgeColor: 'bg-yellow-500 text-gray-900', title: 'Productivity Source', description: 'Create actionable steps to attack the day.', action: 'Open App &rarr;', disabled: true },
+        { id: 'scene-shuffler', badge: 'Creative Tool', badgeColor: 'bg-purple-500 text-white', title: 'Film Scene Shuffler', description: 'Randomize story elements, settings, and characters to break through creative blocks.', action: 'Open App &rarr;', disabled: true },
+
+        { id: 'lofi-builder', badge: 'Prompt Tool', badgeColor: 'bg-pink-500 text-white', title: 'Professional Music Prompt Generator', description: 'Craft a detailed prompt for your next track using moods, instruments, and structure.', action: 'Open App &rarr;', disabled: false },
+
+       
+        ];
+    const lofiBuilderHTML = `<button class="back-to-dashboard-btn action-button bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg mb-8">← Back to Dashboard</button><div class="max-w-5xl mx-auto"><header class="text-center mb-8 md:mb-12"><h1 class="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2">Lo-fi Prompt Generator</h1><p class="text-base sm:text-lg text-gray-400">Craft the perfect prompt for your next lo-fi track.</p></header><div class="flex flex-wrap justify-center gap-4 mb-10"><button id="randomize-all" class="action-button bg-pink-600 hover:bg-pink-700 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-lg">Randomize All</button><button id="global-reset" class="action-button bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-lg">Clear All</button><button id="save-to-file" class="action-button bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-lg">Save to File</button><label for="load-from-file-input" class="action-button bg-gray-600 hover:bg-gray-700 text-white font-bold py-3 px-6 rounded-lg text-lg shadow-lg cursor-pointer">Load from File</label><input type="file" id="load-from-file-input" class="hidden" accept=".json"></div><main class="space-y-10"><section id="title-module"><h2 class="text-2xl font-semibold text-white mb-4 border-b-2 border-gray-700 pb-2">1. Title</h2><div class="flex flex-col sm:flex-row gap-3"><input type="text" id="title-input" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-gray-300 focus:ring-2 focus:ring-indigo-500" placeholder="Enter a title or generate one..."><button id="generate-title" class="action-button bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-lg sm:w-auto w-full">Generate Title</button></div></section><section id="mood-module"><h2 class="text-2xl font-semibold text-white mb-4 border-b-2 border-gray-700 pb-2">2. Moods & Descriptors</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"></div></section><section id="drums-module"><h2 class="text-2xl font-semibold text-white mb-4 border-b-2 border-gray-700 pb-2">3. Select Beat(s)</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"></div></section><section id="bass-module"><h2 class="text-2xl font-semibold text-white mb-4 border-b-2 border-gray-700 pb-2">4. Pick Bassline(s)</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"></div></section><section id="keys-module"><h2 class="text-2xl font-semibold text-white mb-4 border-b-2 border-gray-700 pb-2">5. Add Melody & Chords</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"></div></section><section id="texture-module"><h2 class="text-2xl font-semibold text-white mb-4 border-b-2 border-gray-700 pb-2">6. Layer in Texture(s)</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"></div></section><section id="influence-module"><h2 class="text-2xl font-semibold text-white mb-4 border-b-2 border-gray-700 pb-2">7. Add Regional Influence(s)</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"></div></section><section id="structure-builder-module"><h2 class="text-2xl font-semibold text-white mb-4 border-b-2 border-gray-700 pb-2">8. Build Your Structure</h2><div class="mb-4"><h3 class="text-lg font-medium text-gray-300 mb-3">Structure Presets</h3><p class="text-sm text-gray-400 italic mb-3 -mt-2">Target length is shown first, calculated time is in [brackets].</p><div id="arrangement-templates" class="grid grid-cols-2 sm:grid-cols-4 gap-3"></div></div><div class="mb-4"><h3 class="text-lg font-medium text-gray-300 mb-3">Structure Components</h3><div id="structure-palette" class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-3"></div></div><div><div class="flex justify-between items-center mb-3"><h3 class="text-lg font-medium text-gray-300">Current Sequence (Drag to reorder, right-click to remove)</h3></div><div class="flex items-center gap-4 bg-gray-800 p-4 rounded-lg min-h-[60px]"><div id="structure-sequence" class="flex flex-wrap gap-2 flex-grow"></div><div class="text-right flex-shrink-0"><span id="estimated-length" class="font-mono text-lg text-green-400">00:00</span><button id="structure-reset" class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-3 rounded-lg text-sm ml-4">Reset</button></div></div></div></section><section id="bpm-module"><h2 class="text-2xl font-semibold text-white mb-4 border-b-2 border-gray-700 pb-2">9. Choose Tempo (BPM)</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"></div><input type="text" id="custom-bpm-input" class="hidden mt-4 w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-gray-300" placeholder="Enter custom BPM (e.g., 77)"></section><section id="performance-module"><h2 class="text-2xl font-semibold text-white mb-4 border-b-2 border-gray-700 pb-2">10. Performance & Production Notes</h2><div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4"></div></section><section id="custom-prompt-module"><h2 class="text-2xl font-semibold text-white mb-4 border-b-2 border-gray-700 pb-2">11. Anything else to include?</h2><textarea id="custom-prompt" rows="3" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-3 text-gray-300" placeholder="e.g., add a subtle synth flute melody..."></textarea></section></main><footer class="mt-12 sticky bottom-0 bg-gray-900/80 backdrop-blur-sm py-4 rounded-t-lg"><h3 class="text-xl font-semibold text-white mb-3 text-center">Your Final Generated Prompt</h3><div class="relative"><textarea id="prompt-output" rows="5" class="w-full bg-gray-800 border border-gray-700 rounded-lg p-4 pr-12 text-gray-300 resize-none" readonly></textarea><button id="copy-button" title="Copy to Clipboard" class="absolute top-3 right-3 text-gray-400 hover:text-white hover:bg-gray-700 p-2 rounded-lg transition-colors"><svg id="copy-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg><svg id="check-icon" class="w-5 h-5 text-green-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button></div><p id="char-count" class="text-right text-sm text-gray-500 mt-1 pr-2">0 / 1000 characters</p><div class="text-center mt-4"><button id="save-to-file-bottom" class="action-button bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded-lg text-base">Save to File</button></div></footer></div><div id="save-modal" class="fixed inset-0 z-50 items-center justify-center p-4 hidden"><div class="bg-gray-800 p-8 rounded-xl shadow-2xl w-full max-w-md relative"><h2 class="text-2xl font-bold text-white text-center mb-6">Save Prompt File</h2><div class="mb-4"><label for="filename-input" class="block text-sm font-medium text-gray-300 mb-2">Filename</label><input type="text" id="filename-input" class="w-full bg-gray-700 border-gray-600 text-white rounded-md"></div><div class="flex justify-end gap-4 mt-6"><button id="save-cancel-btn" class="bg-gray-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-gray-700">Cancel</button><button id="save-confirm-btn" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-blue-700">Save</button></div></div></div>`;
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    document.addEventListener('DOMContentLoaded', initializeAuthAndContent);
+
+    function initializeAuthAndContent() {
+        const loginBtn = document.getElementById('login-btn');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userInfoDiv = document.getElementById('user-info');
+        const authModal = document.getElementById('auth-modal');
+        const closeAuthModalBtn = document.getElementById('close-auth-modal-btn');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const publicContent = document.getElementById('public-content');
+        const appDashboard = document.getElementById('app-dashboard');
+        const exploreAppsBtn = document.getElementById('explore-apps-btn');
+        const protectedContent = document.getElementById('protected-content');
+        const INVITE_CODE = "villa25";
+
+        // Setup for the public visualizer
+        const launchVisualizerBtn = document.getElementById('launch-visualizer-btn');
+        const visualizerContainer = document.getElementById('harmonic-visualizer');
+        if (launchVisualizerBtn) {
+            launchVisualizerBtn.addEventListener('click', () => {
+                if (visualizerContainer.dataset.initialized !== 'true') {
+                    initializeHarmonicVisualizer();
+                }
+                // ### CHANGE 1: How the visualizer is SHOWN ###
+                visualizerContainer.style.display = 'flex';
+            });
+        }
+
+        const showApp = (targetId) => {
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                if (targetId === 'lofi-builder' && !targetSection.hasChildNodes()) {
+                    targetSection.innerHTML = lofiBuilderHTML;
+                    initializeLofiPromptGenerator();
+                } 
+                appDashboard.classList.add('hidden');
+                protectedContent.classList.remove('hidden');
+                targetSection.classList.remove('hidden');
+            }
+        };
+
+        const showDashboard = () => {
+            protectedContent.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            protectedContent.classList.add('hidden');
+            appDashboard.classList.remove('hidden');
+        };
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                publicContent.classList.add('hidden');
+                appDashboard.classList.remove('hidden');
+                appDashboard.classList.add('flex');
+                loginBtn.classList.add('hidden');
+                logoutBtn.classList.remove('hidden');
+                if (userInfoDiv.querySelector('span')) userInfoDiv.querySelector('span').textContent = user.email;
+                userInfoDiv.classList.remove('hidden');
+                authModal.classList.add('hidden');
+                populateInteractiveDashboard(showApp);
+            } else {
+                publicContent.classList.remove('hidden');
+                appDashboard.classList.add('hidden');
+                protectedContent.classList.add('hidden');
+                loginBtn.classList.remove('hidden');
+                logoutBtn.classList.add('hidden');
+                userInfoDiv.classList.add('hidden');
+                populatePublicDashboardPreview();
+            }
+        });
+
+        const openAuthModal = (e) => { e.preventDefault(); authModal.classList.remove('hidden'); authModal.classList.add('flex'); };
+        exploreAppsBtn.addEventListener('click', openAuthModal);
+        loginBtn.addEventListener('click', openAuthModal);
+        document.getElementById('public-dashboard-preview').addEventListener('click', openAuthModal);
+        closeAuthModalBtn.addEventListener('click', () => { authModal.classList.add('hidden'); authModal.classList.remove('flex'); });
+        logoutBtn.addEventListener('click', () => auth.signOut());
+        protectedContent.addEventListener('click', (e) => { if (e.target.closest('.back-to-dashboard-btn')) showDashboard(); });
+
+        loginForm.addEventListener('submit', (e) => { e.preventDefault(); const loginError = document.getElementById('login-error'); loginError.textContent = ''; const email = document.getElementById('login-email').value; const password = document.getElementById('login-password').value; auth.signInWithEmailAndPassword(email, password).catch(error => { loginError.textContent = error.message; }); });
+        signupForm.addEventListener('submit', (e) => { e.preventDefault(); const signupError = document.getElementById('signup-error'); signupError.textContent = ''; const email = document.getElementById('signup-email').value; const password = document.getElementById('signup-password').value; const code = document.getElementById('signup-invite-code').value; if (code !== INVITE_CODE) { signupError.textContent = "Invalid invite code."; return; } auth.createUserWithEmailAndPassword(email, password).catch(error => { signupError.textContent = error.message; }); });
+        document.querySelectorAll('[data-toggle-password]').forEach(toggler => { toggler.addEventListener('click', function() { const passwordInput = document.getElementById(this.dataset.togglePassword); if (passwordInput) { const showIcon = this.querySelector('.show-pass-icon'); const hideIcon = this.querySelector('.hide-pass-icon'); if (passwordInput.type === 'password') { passwordInput.type = 'text'; showIcon.classList.add('hidden'); hideIcon.classList.remove('hidden'); } else { passwordInput.type = 'password'; showIcon.classList.remove('hidden'); hideIcon.classList.add('hidden'); } } }); });
+    }
+
+    function populateInteractiveDashboard(showAppCallback) {
+        const dashboardGrid = document.querySelector('#app-dashboard .dashboard-grid');
+        if (!dashboardGrid) return;
+        dashboardGrid.innerHTML = appsData.map(app => `<a href="#" class="card ${app.disabled ? 'disabled' : ''}" data-target="${app.id}"><span class="card-badge ${app.badgeColor}">${app.badge}</span><h2 class="card-title">${app.title}</h2><p class="card-description">${app.description}</p><div class="card-footer">${app.action}</div></a>`).join('');
+        dashboardGrid.addEventListener('click', (e) => {
+            const card = e.target.closest('.card:not(.disabled)');
+            if (card) { e.preventDefault(); showAppCallback(card.dataset.target); }
+        });
+    }
+
+    function populatePublicDashboardPreview() {
+        const previewGrid = document.getElementById('public-dashboard-preview');
+        if (!previewGrid) return;
+        previewGrid.innerHTML = appsData.map(app => `<div class="card disabled"><span class="card-badge ${app.badgeColor}">${app.badge}</span><h2 class="card-title">${app.title}</h2><p class="card-description">${app.description}</p><div class="card-footer">Login to Access</div></div>`).join('');
+    }
+    
+    function initializeHarmonicVisualizer() {
+        const container = document.getElementById('harmonic-visualizer');
+        if (!container || container.dataset.initialized === 'true') return;
+
+        container.innerHTML = `
+            <style>
+                #harmonic-visualizer {
+                    margin: 0; overflow: hidden; background-color: #1a202c;
+                    background-image: radial-gradient(circle at center, #2d3748 0%, #1a202c 70%);
+                    font-family: 'Inter', sans-serif; color: #f7fafc;
+                    display: flex; justify-content: center; align-items: center;
+                }
+                #harmonic-visualizer canvas { display: block; cursor: grab; }
+                #harmonic-visualizer canvas.grabbing, #harmonic-visualizer canvas:active { cursor: grabbing; }
+                #harmonic-visualizer .navigation-bar {
+                    position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+                    background-color: rgba(26, 32, 44, 0.7); backdrop-filter: blur(10px);
+                    padding: 10px 25px; border-radius: 12px; border: 1px solid rgba(74, 85, 104, 0.5);
+                    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); display: flex; align-items: center;
+                    gap: 15px; z-index: 10;
+                }
+                #harmonic-visualizer .navigation-bar label { font-size: 0.8rem; color: #a0aec0; white-space: nowrap; }
+                #harmonic-visualizer input[type="range"] {
+                    -webkit-appearance: none; appearance: none; width: 150px; height: 5px;
+                    background: #4a5568; border-radius: 5px; outline: none; transition: background 0.2s;
+                }
+                #harmonic-visualizer input[type="range"]:hover { background: #718096; }
+                #harmonic-visualizer input[type="range"]::-webkit-slider-thumb {
+                    -webkit-appearance: none; appearance: none; width: 18px; height: 18px;
+                    background: #f7fafc; border-radius: 50%; cursor: pointer; border: 2px solid #4a5568;
+                }
+                #harmonic-visualizer input[type="range"]::-moz-range-thumb {
+                    width: 18px; height: 18px; background: #f7fafc; border-radius: 50%;
+                    cursor: pointer; border: 2px solid #4a5568;
+                }
+                #harmonic-visualizer .control-btn {
+                    background-color: #4a5568; border: 1px solid #718096; color: #f7fafc;
+                    width: 28px; height: 28px; border-radius: 50%; font-size: 1.2rem; font-weight: bold;
+                    cursor: pointer; display: flex; justify-content: center; align-items: center;
+                    padding: 0; line-height: 1; transition: background-color 0.2s, transform 0.1s;
+                }
+                #harmonic-visualizer .control-btn:hover { background-color: #718096; }
+                #harmonic-visualizer .control-btn:active { transform: scale(0.95); }
+            </style>
+            <button id="close-visualizer-btn" class="action-button bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg" style="position: absolute; top: 20px; left: 20px; z-index: 20;">← Close</button>
+            <canvas id="harmonicCanvas"></canvas>
+            <div class="navigation-bar">
+                <button class="control-btn" id="playPauseBtn">❚❚</button>
+                <label for="panX">Pan</label>
+                <input type="range" id="panX" value="0">
+                <input type="range" id="panY" value="0">
+                <button class="control-btn" id="zoomOutBtn">-</button>
+                <button class="control-btn" id="zoomInBtn">+</button>
             </div>
+        `;
+        
+        const closeButton = container.querySelector('#close-visualizer-btn');
+        if (closeButton) {
+            closeButton.addEventListener('click', () => {
+                // ### CHANGE 2: How the visualizer is HIDDEN ###
+                container.style.display = 'none';
+            });
+        }
 
-            <section id="output-container" class="guide-section hidden mt-8">
-                <h2 id="output-title" class="text-3xl font-bold mb-4 text-center">Your Song Brief</h2>
-                <div id="song-output" class="text-lg leading-relaxed p-6 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700"></div>
-                
-                <h3 class="text-2xl font-bold mt-8 mb-4">Musician & Producer Notes</h3>
-                <textarea id="musician-notes-output" class="w-full p-6 bg-gray-50 dark:bg-gray-800 rounded-md border border-gray-200 dark:border-gray-700 text-base" rows="10"></textarea>
+        // VISUALIZER CODE
+        const canvas = container.querySelector('#harmonicCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const cardData = [ { id: '2_H', keyName: 'B Major', cardSymbol: '2❤️', type: 'major', cluster: 1, compatible: ['K_H', '3_H', 'J_S'] }, { id: '3_H', keyName: 'F♯ Major', cardSymbol: '3❤️', type: 'major', cluster: 2, compatible: ['2_H', '4_H', 'Q_S'] }, { id: '4_H', keyName: 'D♭ Major', cardSymbol: '4❤️', type: 'major', cluster: 2, compatible: ['3_H', '5_H', '4_S'] }, { id: '5_H', keyName: 'A♭ Major', cardSymbol: '5❤️', type: 'major', cluster: 2, compatible: ['4_H', '6_H', '5_S'] }, { id: '6_H', keyName: 'E♭ Major', cardSymbol: '6❤️', type: 'major', cluster: null, compatible: ['5_H', '7_H', '6_S'] }, { id: '7_H', keyName: 'B♭ Major', cardSymbol: '7❤️', type: 'major', cluster: 3, compatible: ['6_H', '8_H', '7_S'] }, { id: '8_H', keyName: 'F Major', cardSymbol: '8❤️', type: 'major', cluster: 3, compatible: ['7_H', '9_H', '8_S'] }, { id: '9_H', keyName: 'C Major', cardSymbol: '9❤️', type: 'major', cluster: 4, compatible: ['8_H', '10_H', '9_S'] }, { id: '10_H', keyName: 'G Major', cardSymbol: '10❤️', type: 'major', cluster: 4, compatible: ['9_H', 'J_H', '10_S'] }, { id: 'J_H', keyName: 'D Major', cardSymbol: 'J❤️', type: 'major', cluster: null, compatible: ['10_H', 'Q_H', 'J_S'] }, { id: 'Q_H', keyName: 'A Major', cardSymbol: 'Q❤️', type: 'major', cluster: 1, compatible: ['J_H', 'K_H', 'Q_S'] }, { id: 'K_H', keyName: 'E Major', cardSymbol: 'K❤️', type: 'major', cluster: 1, compatible: ['Q_H', '2_H', 'K_S'] }, { id: '4_S', keyName: 'B♭ Minor', cardSymbol: '4♠️', type: 'minor', cluster: 2, compatible: ['4_H', '3_S', '5_S'] }, { id: '7_S', keyName: 'G Minor', cardSymbol: '7♠️', type: 'minor', cluster: 3, compatible: ['7_H', '6_S', '8_S'] }, { id: '10_S', keyName: 'E Minor', cardSymbol: '10♠️', type: 'minor', cluster: 4, compatible: ['10_H', '9_S', 'J_S'] }, { id: 'K_S', keyName: 'D♭ Minor', cardSymbol: 'K♠️', type: 'minor', cluster: 1, compatible: ['K_H', 'Q_S', '2_S'] }, { id: '2_S', keyName: 'A♭ Minor', cardSymbol: '2♠️', type: 'minor', cluster: null, compatible: ['2_H', 'K_S', '3_S'] }, { id: '3_S', keyName: 'E♭ Minor', cardSymbol: '3♠️', type: 'minor', cluster: null, compatible: ['3_H', '2_S', '4_S'] }, { id: '5_S', keyName: 'F Minor', cardSymbol: '5♠️', type: 'minor', cluster: null, compatible: ['5_H', '4_S', '6_S'] }, { id: '6_S', keyName: 'C Minor', cardSymbol: '6♠️', type: 'minor', cluster: null, compatible: ['6_H', '5_S', '7_S'] }, { id: '8_S', keyName: 'D Minor', cardSymbol: '8♠️', type: 'minor', cluster: null, compatible: ['8_H', '7_S', '9_S'] }, { id: '9_S', keyName: 'A Minor', cardSymbol: '9♠️', type: 'minor', cluster: null, compatible: ['9_H', '8_S', '10_S'] }, { id: 'J_S', keyName: 'B Minor', cardSymbol: 'J♠️', type: 'minor', cluster: null, compatible: ['J_H', '10_S', 'Q_S'] }, { id: 'Q_S', keyName: 'F♯ Minor', cardSymbol: 'Q♠️', type: 'minor', cluster: null, compatible: ['Q_H', 'J_S', 'K_S'] }, ];
+        const DAMPING = 0.98; const REPULSION_FORCE = 0.5; const CLUSTER_ATTRACTION = 0.0005; const DRAG_ATTRACTION = 0.02; const FOCUS_ATTRACTION = 0.05; const ARENA_RADIUS = Math.min(window.innerWidth, window.innerHeight) * 1.5; const CENTER_PULL_FORCE = 0.000005; const MAX_TRAIL_DISTANCE = canvas.width / 3; const MIN_ZOOM = 0.25; const MAX_ZOOM = 4.0; const MAX_FOLLOWER_SPEED = 15;
+        let cards = []; let draggedCard = null; let compatibleGlows = []; let genesisAnimationTime = 180;
+        let camera = { x: 0, y: 0, zoom: 1 }; const worldCenter = { x: canvas.width / 2, y: canvas.height / 2 }; let panState = { active: false, startX: 0, startY: 0, startCameraX: 0, startCameraY: 0 }; let focusState = { active: false, hero: null, followers: [] }; let isSimulationPaused = false;
+        const panXSlider = container.querySelector('#panX'); const panYSlider = container.querySelector('#panY'); const zoomInBtn = container.querySelector('#zoomInBtn'); const zoomOutBtn = container.querySelector('#zoomOutBtn'); const playPauseBtn = container.querySelector('#playPauseBtn');
+        class Card { constructor(data) { this.data = data; this.x = worldCenter.x + (Math.random() - 0.5) * 50; this.y = worldCenter.y + (Math.random() - 0.5) * 50; this.radius = data.type === 'major' ? 45 : 35; this.vx = 0; this.vy = 0; this.scale = 1; this.glow = false; this.alpha = 1; } draw() { ctx.save(); ctx.globalAlpha = this.alpha; ctx.shadowColor = 'rgba(0, 0, 0, 0.4)'; ctx.shadowBlur = 15; ctx.shadowOffsetY = 5; if (this.glow) { ctx.shadowColor = 'rgba(255, 255, 255, 0.7)'; ctx.shadowBlur = 30; } ctx.translate(this.x, this.y); ctx.scale(this.scale, this.scale); ctx.beginPath(); ctx.arc(0, 0, this.radius, 0, Math.PI * 2); ctx.fillStyle = this.data.type === 'major' ? '#c53030' : '#4a5568'; ctx.fill(); ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)'; ctx.lineWidth = 1.5; ctx.stroke(); ctx.restore(); ctx.save(); ctx.globalAlpha = this.alpha; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; const isFocused = focusState.active && (focusState.hero === this || focusState.followers.includes(this)); if (isFocused) { ctx.font = `bold 1.1rem 'Inter'`; ctx.fillText(this.data.keyName, this.x, this.y - 5); ctx.font = `400 0.8rem 'Inter'`; ctx.fillText(this.data.cardSymbol, this.x, this.y + 15); } else { ctx.font = `bold 1.5rem 'Inter'`; ctx.fillText(this.data.cardSymbol, this.x, this.y - 8); ctx.font = `400 0.6rem 'Inter'`; ctx.fillText(this.data.keyName, this.x, this.y + 15); } ctx.restore(); } update() { const isHero = focusState.active && focusState.hero === this; if (draggedCard !== this || isHero) { this.vx *= DAMPING; this.vy *= DAMPING; this.x += this.vx; this.y += this.vy; } const shouldScaleUp = (draggedCard === this || isHero); if (shouldScaleUp && this.scale < 1.1) { this.scale += 0.05; } else if (!shouldScaleUp && this.scale > 1) { this.scale -= 0.05; } const isVisible = !focusState.active || (focusState.hero === this || focusState.followers.includes(this)); if (!isVisible) { this.alpha = Math.max(0.1, this.alpha - 0.05); } else { this.alpha = Math.min(1, this.alpha + 0.05); } } }
+        function handlePhysics() { if (genesisAnimationTime > 0) { cards.forEach(card => { const dx = card.x - worldCenter.x; const dy = card.y - worldCenter.y; card.vx += dx * 0.0002; card.vy += dy * 0.0002; }); genesisAnimationTime--; } if (focusState.active) { handleFocusPhysics(); return; } for (let i = 0; i < cards.length; i++) { const cardA = cards[i]; if (cardA === draggedCard) continue; if (!isSimulationPaused) { const distFromCenter = Math.sqrt(Math.pow(cardA.x - worldCenter.x, 2) + Math.pow(cardA.y - worldCenter.y, 2)); if (distFromCenter > ARENA_RADIUS) { const pullForce = (distFromCenter - ARENA_RADIUS) * CENTER_PULL_FORCE; cardA.vx -= ((cardA.x - worldCenter.x) / distFromCenter) * pullForce; cardA.vy -= ((cardA.y - worldCenter.y) / distFromCenter) * pullForce; } } for (let j = i + 1; j < cards.length; j++) { const cardB = cards[j]; if (cardB === draggedCard) continue; const dx = cardB.x - cardA.x; const dy = cardB.y - cardA.y; const distance = Math.max(1, Math.sqrt(dx * dx + dy * dy)); const minDistance = cardA.radius + cardB.radius + 10; if (distance < minDistance) { const force = (minDistance - distance) * REPULSION_FORCE * 0.01; const ax = (dx / distance) * force; const ay = (dy / distance) * force; cardA.vx -= ax; cardA.vy -= ay; cardB.vx += ax; cardB.vy += ay; } const isDragging = !!draggedCard; const cardAIsFollower = isDragging && compatibleGlows.includes(cardA); const cardBIsFollower = isDragging && compatibleGlows.includes(cardB); const isInCluster = genesisAnimationTime <= 0 && cardA.data.cluster && cardA.data.cluster === cardB.data.cluster; if (isInCluster && !isSimulationPaused && !cardAIsFollower && !cardBIsFollower) { const force = distance * CLUSTER_ATTRACTION; const ax = (dx / distance) * force; const ay = (dy / distance) * force; cardA.vx += ax; cardA.vy += ay; cardB.vx -= ax; cardB.vy -= ay; } } } if (draggedCard) { compatibleGlows.forEach(follower => { const dx = draggedCard.x - follower.x; const dy = draggedCard.y - follower.y; const distance = Math.max(1, Math.sqrt(dx * dx + dy * dy)); const minFollowerDistance = draggedCard.radius + follower.radius + 20; if (distance > minFollowerDistance) { let force = (distance - minFollowerDistance) * DRAG_ATTRACTION; if (distance > MAX_TRAIL_DISTANCE) { force += (distance - MAX_TRAIL_DISTANCE) * (DRAG_ATTRACTION * 2); } const ax = (dx / distance) * force; const ay = (dy / distance) * force; follower.vx += ax; follower.vy += ay; } const speed = Math.sqrt(follower.vx * follower.vx + follower.vy * follower.vy); if (speed > MAX_FOLLOWER_SPEED) { follower.vx = (follower.vx / speed) * MAX_FOLLOWER_SPEED; follower.vy = (follower.vy / speed) * MAX_FOLLOWER_SPEED; } }); } }
+        function handleFocusPhysics() { const hero = focusState.hero; const followers = focusState.followers; const allFocused = [hero, ...followers]; const targetPositions = getFocusTargetPositions(hero, followers); followers.forEach(follower => { const target = targetPositions[follower.data.id]; const dx = target.x - follower.x; const dy = target.y - follower.y; const distance = Math.sqrt(dx * dx + dy * dy); if (distance > 1) { follower.vx += dx * FOCUS_ATTRACTION * 0.1; follower.vy += dy * FOCUS_ATTRACTION * 0.1; } }); for (let i = 0; i < allFocused.length; i++) { for (let j = i + 1; j < allFocused.length; j++) { const cardA = allFocused[i]; const cardB = allFocused[j]; const dx = cardB.x - cardA.x; const dy = cardB.y - cardA.y; const distance = Math.max(1, Math.sqrt(dx * dx + dy * dy)); const minDistance = cardA.radius + cardB.radius + 15; if (distance < minDistance) { const force = (minDistance - distance) * REPULSION_FORCE * 0.15; const ax = (dx / distance) * force; const ay = (dy / distance) * force; if (cardA !== hero) { cardA.vx -= ax; cardA.vy -= ay; } if (cardB !== hero) { cardB.vx += ax; cardB.vy += ay; } } } } }
+        function getFocusTargetPositions(hero, followers) { const positions = {}; const heroIsMajor = hero.data.type === 'major'; const spacing = hero.radius + 65; if (heroIsMajor) { const minor = followers.find(f => f.data.type === 'minor'); const majors = followers.filter(f => f.data.type === 'major').sort((a,b) => a.data.id.localeCompare(b.data.id)); if (majors[0]) positions[majors[0].data.id] = { x: hero.x - spacing, y: hero.y }; if (majors[1]) positions[majors[1].data.id] = { x: hero.x + spacing, y: hero.y }; if (minor) positions[minor.data.id] = { x: hero.x, y: hero.y + spacing }; } else { const major = followers.find(f => f.data.type === 'major'); const minors = followers.filter(f => f.data.type === 'minor').sort((a,b) => a.data.id.localeCompare(b.data.id)); if (major) positions[major.data.id] = { x: hero.x, y: hero.y - spacing }; if (minors[0]) positions[minors[0].data.id] = { x: hero.x - spacing, y: hero.y }; if (minors[1]) positions[minors[1].data.id] = { x: hero.x + spacing, y: hero.y }; } return positions; }
+        function drawArena() { ctx.beginPath(); ctx.arc(worldCenter.x, worldCenter.y, ARENA_RADIUS, 0, Math.PI * 2); const gradient = ctx.createRadialGradient( worldCenter.x, worldCenter.y, ARENA_RADIUS - 50, worldCenter.x, worldCenter.y, ARENA_RADIUS ); gradient.addColorStop(0, 'rgba(255, 255, 255, 0)'); gradient.addColorStop(1, 'rgba(255, 255, 255, 0.05)'); ctx.strokeStyle = gradient; ctx.lineWidth = 100; ctx.stroke(); }
+        function animate() { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.save(); ctx.translate(canvas.width / 2, canvas.height / 2); ctx.scale(camera.zoom, camera.zoom); ctx.translate(-canvas.width / 2 - camera.x, -canvas.height / 2 - camera.y); if (!focusState.active) drawArena(); handlePhysics(); cards.forEach(card => { card.update(); card.draw(); }); ctx.restore(); requestAnimationFrame(animate); }
+        function getMouseWorldPos(e) { const rect = canvas.getBoundingClientRect(); const mouseX = e.clientX - rect.left; const mouseY = e.clientY - rect.top; const worldX = (mouseX - canvas.width / 2) / camera.zoom + canvas.width / 2 + camera.x; const worldY = (mouseY - canvas.height / 2) / camera.zoom + canvas.height / 2 + camera.y; return { x: worldX, y: worldY }; }
+        canvas.addEventListener('mousedown', (e) => { const worldPos = getMouseWorldPos(e); let cardFound = false; for (let i = cards.length - 1; i >= 0; i--) { const card = cards[i]; const dx = worldPos.x - card.x; const dy = worldPos.y - card.y; if (Math.sqrt(dx * dx + dy * dy) < card.radius) { if (focusState.active && focusState.hero === card) { draggedCard = card; } else if (!focusState.active) { draggedCard = card; const compatibleIds = new Set(draggedCard.data.compatible); compatibleGlows = cards.filter(c => compatibleIds.has(c.data.id)); draggedCard.glow = true; compatibleGlows.forEach(c => c.glow = true); setSimulationPaused(true); } cardFound = true; break; } } if (!cardFound) { if (focusState.active) { panState.active = true; panState.startX = e.clientX; panState.startY = e.clientY; panState.startCameraX = camera.x; panState.startCameraY = camera.y; canvas.classList.add('grabbing'); } else { panState.active = true; panState.startX = e.clientX; panState.startY = e.clientY; panState.startCameraX = camera.x; panState.startCameraY = camera.y; canvas.classList.add('grabbing'); setSimulationPaused(true); } } });
+        canvas.addEventListener('dblclick', (e) => { const worldPos = getMouseWorldPos(e); let cardFound = null; for (let i = cards.length - 1; i >= 0; i--) { const card = cards[i]; const dx = worldPos.x - card.x; const dy = worldPos.y - card.y; if (Math.sqrt(dx * dx + dy * dy) < card.radius) { cardFound = card; break; } } toggleFocus(cardFound); });
+        function toggleFocus(heroCard) { if (focusState.active) { if (heroCard === focusState.hero || !heroCard) { focusState.active = false; focusState.hero.glow = false; focusState.followers.forEach(f => f.glow = false); focusState.hero = null; focusState.followers = []; setSimulationPaused(false); } } else if (heroCard) { focusState.active = true; focusState.hero = heroCard; const compatibleIds = new Set(heroCard.data.compatible); focusState.followers = cards.filter(c => compatibleIds.has(c.data.id)); focusState.hero.glow = true; focusState.followers.forEach(f => f.glow = true); setSimulationPaused(true); } }
+        canvas.addEventListener('mousemove', (e) => { if (draggedCard) { const worldPos = getMouseWorldPos(e); draggedCard.x = worldPos.x; draggedCard.y = worldPos.y; draggedCard.vx = 0; draggedCard.vy = 0; } else if (panState.active) { const dx = e.clientX - panState.startX; const dy = e.clientY - panState.startY; camera.x = panState.startCameraX - (dx / camera.zoom); camera.y = panState.startCameraY - (dy / camera.zoom); updateSliders(); } });
+        const endDrag = () => { if (draggedCard && !focusState.active) { draggedCard.glow = false; compatibleGlows.forEach(c => c.glow = false); } if (panState.active) { panState.active = false; canvas.classList.remove('grabbing'); if(!focusState.active) setSimulationPaused(false); } draggedCard = null; compatibleGlows = []; }
+        canvas.addEventListener('mouseup', endDrag); canvas.addEventListener('mouseleave', endDrag);
+        function setupSliders() { const panRangeX = worldCenter.x * 2; const panRangeY = worldCenter.y * 2; panXSlider.min = -panRangeX; panXSlider.max = panRangeX; panYSlider.min = -panRangeY; panYSlider.max = panRangeY; updateSliders(); }
+        function updateSliders() { panXSlider.value = camera.x; panYSlider.value = camera.y; }
+        panXSlider.addEventListener('input', (e) => { camera.x = parseFloat(e.target.value); setSimulationPaused(true); }); panYSlider.addEventListener('input', (e) => { camera.y = parseFloat(e.target.value); setSimulationPaused(true); });
+        function applyZoom(factor) { const newZoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, camera.zoom * factor)); camera.zoom = newZoom; }
+        zoomInBtn.addEventListener('click', () => applyZoom(1.2)); zoomOutBtn.addEventListener('click', () => applyZoom(1 / 1.2));
+        function setSimulationPaused(paused) { isSimulationPaused = paused; playPauseBtn.innerHTML = paused ? '►' : '❚❚'; if (!paused) { cards.forEach(c => { c.vx += (Math.random() - 0.5) * 0.1; c.vy += (Math.random() - 0.5) * 0.1; }); } }
+        playPauseBtn.addEventListener('click', () => { if(focusState.active) toggleFocus(null); setSimulationPaused(!isSimulationPaused) });
+        canvas.addEventListener('wheel', (e) => { e.preventDefault(); const zoomFactor = e.deltaY < 0 ? 1.1 : 1 / 1.1; applyZoom(zoomFactor); });
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; worldCenter.x = canvas.width / 2; worldCenter.y = canvas.height / 2; setupSliders(); });
+        function init() { cards = cardData.map(d => new Card(d)); setupSliders(); animate(); }
+        init();
+        
+        container.dataset.initialized = 'true';
+    }
 
-                <div class="text-center mt-8 flex flex-wrap justify-center gap-4">
-                     <button id="copy-btn" class="bg-gray-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-300 dark:bg-gray-500 dark:hover:bg-gray-600 transition-all duration-300">
-                        Copy Brief
-                    </button>
-                     <button id="download-txt-btn" class="bg-violet-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-300 transition-all duration-300">
-                        Download .txt
-                    </button>
-                    <button id="download-json-btn" class="bg-violet-600 text-white font-bold py-2 px-6 rounded-lg hover:bg-violet-700 focus:outline-none focus:ring-4 focus:ring-violet-300 transition-all duration-300">
-                        Download .json
-                    </button>
-                     <button id="start-over-btn" class="ml-4 bg-transparent text-gray-600 dark:text-gray-300 font-bold py-2 px-6 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 focus:outline-none focus:ring-4 focus:ring-gray-300 transition-all duration-300">
-                        Start Over
-                    </button>
-                </div>
-            </section>
-        </main>
-    </div>
-    <script src="assets/js/script.js"></script>
+    function initializeLofiPromptGenerator() {
+        const container = document.getElementById('lofi-builder');
+        if (!container || container.dataset.initialized === 'true') return;
+
+        const options = { mood: { prefix: "mood", multiSelect: true, choices: [ "Cozy", "Comfort", "Warmth", "Blanket", "Candlelight", "Gentle", "Glow", "Lowkey", "Mellow", "Peace", "Quiet", "Serene", "Slow", "Soothing", "Stillness", "Tender", "Velvet", "Heartbreak", "Sadness", "Lonesome", "Longing", "Rainy", "Wistful", "Emptiness", "Fading Hope", "Future Fears", "Regret", "Struggle", "Introspective", "Thoughtful", "Contemplation", "Dreamy", "Floating", "Healing", "Memory", "Past", "Reflection", "Rewind", "Sleepy", "Solitude", "Unspoken", "Whispers", "Ambience", "Analog", "Blurred", "Clouded", "Crackle", "Distant", "Drifting", "Dusk", "Dusty", "Echoing", "Faded", "Flicker", "Foggy", "Golden", "Grainy", "Hazy", "Horizon", "Looped", "Muted", "Nightfall", "Sketchbook", "Static", "Anxious", "Bittersweet", "Defiance", "Determination", "Happiness", "Hopeful", "Isolated", "Love", "Overcoming", "Protest", "Resistance" ] }, drums: { prefix: "drums", multiSelect: true, choices: ["Classic boom-bap", "Vinyl crackle beat", "Slow trap hats", "Muted brush snare", "No drums", "Simple kick & snare", "808 beat", "Shaker loop", "Dilla-style swing", "Brushed jazz drums", "Finger snaps", "TR-606 pattern", "LinnDrum machine", "SP-1200 grit", "Ghost notes", "Side-stick clicks", "Heartbeat rhythm", "Sleepy headnod", "Introspective breaks", "Silence breaks", "Floating rhythm", "Snowfall loop", "Candlelight beat", "Heavy kick", "Light percussion", "Rimshots", "Timbale hits", "Bongo pattern", "Conga groove", "Minimalist beat", "Complex polyrhythm", "Driving rhythm", "Laid-back groove", "Off-kilter beat", "Swung hi-hats", "Closed hats", "Open hats", "Cymbal swells", "Reverb-heavy snare", "Dry kick drum", "Compressed drums", "Saturated drums", "Humanized timing", "Machine-like precision", "Filtered drums", "Low-pass filter", "High-pass filter", "Acoustic kit", "Electronic kit"] }, bass: { prefix: "bass", multiSelect: true, choices: ["Sub bass drone", "Mellow upright bass", "Simple synth bass", "Jaco-style melodic", "Warm Moog-style", "808 bass notes", "Walking bassline", "No bass", "P-Bass with flatwounds", "Hofner-style violin", "Fretless bass slides", "Juno-60 synth bass", "Staccato bass", "Legato bass slides", "Jazz bass tone", "Music Man tone", "Deep house bass", "Acid bassline", "Funky slap bass", "Picked bass", "Fingerstyle bass", "Palm-muted bass", "Growling bass", "Smooth sine wave", "Square wave synth", "Sawtooth synth", "Resonant filter", "Heavy compression", "Distorted bass", "Clean bass tone", "R&B bassline", "Driving eighth notes", "Syncopated rhythm", "Counter-melody bass", "Minimalist bass", "Repetitive ostinato", "Gliding portamento", "Arpeggiated bass", "Chorus effect", "Flanger on bass", "Wah pedal bass", "Envelope filter", "Octave pedal", "Fuzz bass", "Sustained notes", "Plucky attack", "Soft attack", "Thick texture", "Thin texture"] }, keys: { prefix: "keys", multiSelect: true, choices: ["Muted piano", "Jazzy electric piano", "Nostalgic synth lead", "Clean guitar lick", "Melancholy strings", "Kalimba melody", "Celeste music box", "Arpeggiated synth", "Wurlitzer chords", "Mellow nylon guitar", "Rhodes piano", "Vibraphone melody", "Flute sample", "Mellotron strings", "7th chords", "9th chords", "Delayed guitar", "Hammond B3 organ", "Farfisa organ", "Vox Continental organ", "Hohner Clavinet", "Harpsichord", "Glockenspiel", "Marimba", "Steel drums", "Synth pads", "Plucked synth", "Synth brass", "Synth bells", "Choir synth (Aahs)", "String section", "Solo violin", "Solo cello", "Acoustic guitar chords", "Fingerpicked guitar", "Slide guitar", "Banjo", "Mandolin", "Ukulele", "Sitar", "Koto", "Shamisen", "Accordion", "Harmonica", "Pan flute", "Ocarina", "Theremin", "Music box"] }, texture: { prefix: "texture", multiSelect: true, choices: ["Rain sounds", "Vinyl crackle", "Tape hiss", "Distant city noise", "Reverb washes", "Gentle wind", "Fireplace crackle", "Keyboard typing", "Coffee shop ambiance", "Train on tracks", "Cassette player clicks", "Filtered vocal sample", "Distant sirens", "Old movie dialogue", "Book page turns", "Pouring coffee", "Ocean waves", "Forest sounds", "Birds chirping", "Crickets at night", "Footsteps on gravel", "A ticking clock", "A distant thunderstorm", "Children playing", "A cat purring", "A dog barking", "A squeaky door", "A humming refrigerator", "A fan blowing", "A radio tuning", "A needle drop", "A camera shutter", "A projector running", "A boat creaking", "A bicycle bell", "A cash register", "A phone ringing", "A dial tone", "A busy signal", "A modem connecting", "A vinyl record ending", "A tape rewinding", "A match striking", "A fire burning", "A stream babbling", "A waterfall", "A howling wind", "A creaking floorboard", "A dripping faucet"] }, influence: { prefix: "influence", multiSelect: true, choices: ["Japanese City Pop", "Brazilian Bossa Nova", "New York Boom Bap", "West Coast G-Funk", "French House", "UK Garage", "Jamaican Dub", "Detroit Techno", "Memphis Soul", "Ethiopian Jazz", "Chicago House", "UK Drill rhythm", "Nordic Folk melody", "K-Pop chord progression", "Bollywood strings", "Afrobeat rhythm", "Cuban Son montuno", "Andalusian scale", "Appalachian folk", "Berlin School synth", "Bollywood film score", "Cantopop melody", "Delta Blues guitar", "Gamelan percussion", "Highlife guitar", "Irish folk fiddle", "Krautrock rhythm", "Library music", "Lo-fi house", "Minimal techno", "Nashville country", "New Age synth pads", "Psychedelic rock", "Reggaeton beat", "Ska rhythm", "Soukous guitar", "Synthwave", "Tango rhythm", "Thai funk", "Turkish psych rock", "Vaporwave", "Video game music", "Zouk rhythm", "Bluegrass banjo", "Cajun fiddle", "Countrypolitan strings", "Exotica", "Flamenco guitar", "Gregorian chant", "Hawaiian slack-key"] }, bpm: { prefix: "bpm", multiSelect: false, choices: ["60-65", "65-70", "70-75", "75-80", "80-85", "85-90", "90-95", "95-100", "Custom"] }, performance: { prefix: "performance", multiSelect: true, choices: ["Builds energy", "Sparse verses, busy chorus", "Static and looping", "Minimalist and repetitive", "Ebbs and flows", "Warm analog sounds", "Bright digital sounds", "Clean guitar tone", "Overdriven guitar", "Dry, tight drums", "Reverb-heavy drums", "Acoustic and organic", "Loose and humanized", "Tight and precise", "Behind the beat", "On the beat (driving)", "Spontaneous fills", "Staccato notes", "Legato notes", "Wide stereo image", "Narrow mono feel", "Heavy compression", "Clean and dynamic", "Saturated tape sound", "Subtle background", "Hazy and distant", "Underwater feel", "Sidechained to kick", "Crisp and modern", "Tape-stop effects", "Heavy vinyl wow/flutter", "Dark and murky", "Parallel compression", "Heavy saturation", "Bitcrushed elements", "Gated reverb"] } };
+        const structureParts = [ { name: "Intro", bars: 4 }, { name: "Intro", bars: 8 }, { name: "Verse", bars: 8 }, { name: "Verse", bars: 16 }, { name: "Chorus", bars: 8 }, { name: "Chorus", bars: 16 }, { name: "Bridge", bars: 8 }, { name: "Solo", bars: 8 }, { name: "Break", bars: 4 }, { name: "Outro", bars: 8 } ];
+        const arrangementTemplates = { "2:00-2:30": { bpm: "80-85", structure: [ { name: "Intro", bars: 8 }, { name: "Verse", bars: 16 }, { name: "Chorus", bars: 8 }, { name: "Verse", bars: 16 }, { name: "Outro", bars: 8 } ] }, "2:30-3:00": { bpm: "75-80", structure: [ { name: "Intro", bars: 8 }, { name: "Verse", bars: 16 }, { name: "Chorus", bars: 8 }, { name: "Verse", bars: 16 }, { name: "Bridge", bars: 8 }, { name: "Outro", bars: 8 } ] }, "3:00-3:30": { bpm: "70-75", structure: [ { name: "Intro", bars: 8 }, { name: "Verse", bars: 16 }, { name: "Chorus", bars: 16 }, { name: "Verse", bars: 16 }, { name: "Chorus", bars: 8 }, { name: "Outro", bars: 8 } ] }, "3:30-4:00": { bpm: "70-75", structure: [ { name: "Intro", bars: 8 }, { name: "Verse", bars: 16 }, { name: "Chorus", bars: 8 }, { name: "Verse", bars: 16 }, { name: "Solo", bars: 8 }, { name: "Chorus", bars: 16 }, { name: "Outro", bars: 8 } ] }, "4:00-5:00": { bpm: "65-70", structure: [ { name: "Intro", bars: 8 }, { name: "Verse", bars: 16 }, { name: "Chorus", bars: 16 }, { name: "Verse", bars: 16 }, { name: "Bridge", bars: 8 }, { name: "Solo", bars: 16 }, { name: "Chorus", bars: 16 }, { name: "Outro", bars: 8 } ] } };
+        
+        const promptState = {};
+        const ui = { titleInput: container.querySelector('#title-input'), generateTitleBtn: container.querySelector('#generate-title'), promptOutput: container.querySelector('#prompt-output'), copyButton: container.querySelector('#copy-button'), copyIcon: container.querySelector('#copy-icon'), checkIcon: container.querySelector('#check-icon'), charCount: container.querySelector('#char-count'), structurePalette: container.querySelector('#structure-palette'), structureSequence: container.querySelector('#structure-sequence'), structureResetBtn: container.querySelector('#structure-reset'), arrangementTemplatesContainer: container.querySelector('#arrangement-templates'), randomizeAllBtn: container.querySelector('#randomize-all'), globalResetBtn: container.querySelector('#global-reset'), saveToFileBtnTop: container.querySelector('#save-to-file'), saveToFileBtnBottom: container.querySelector('#save-to-file-bottom'), loadFromFileInput: container.querySelector('#load-from-file-input'), saveModal: container.querySelector('#save-modal'), filenameInput: container.querySelector('#filename-input'), saveConfirmBtn: container.querySelector('#save-confirm-btn'), saveCancelBtn: container.querySelector('#save-cancel-btn'), estimatedLengthEl: container.querySelector('#estimated-length'), customPromptEl: container.querySelector('#custom-prompt'), customBpmInput: container.querySelector('#custom-bpm-input') };
+
+        const generatePrompt = () => { const parts = []; if (promptState.title) parts.push(`title ${promptState.title}`); parts.push(`genre Lo-fi Hip-Hop Chillwave`); Object.keys(options).forEach(category => { const selection = promptState[category]; if (selection && selection.length > 0) { const value = Array.isArray(selection) ? selection.join(', ') : selection; parts.push(`${options[category].prefix} ${value}`); } }); if (promptState.structure && promptState.structure.length > 0) { const structureString = promptState.structure.map(p => `${p.name}(${p.bars})`).join(' '); parts.push(`structure ${structureString}`); } parts.push(`key Cm instrumental ONLY`); if (promptState.custom) parts.push(promptState.custom); ui.promptOutput.value = parts.join(' '); updateCharCount(); };
+        const updateCharCount = () => { const len = ui.promptOutput.value.length; ui.charCount.textContent = `${len} / 1000 characters`; ui.charCount.classList.toggle('text-red-500', len > 1000); ui.charCount.classList.toggle('text-gray-500', len <= 1000); };
+        const updateEstimatedLength = () => { ui.estimatedLengthEl.textContent = calculateTime(promptState.bpm, promptState.structure); };
+        const calculateTime = (bpmString, structure) => { if (!bpmString || !structure || structure.length === 0) return "00:00"; let avgBpm = parseInt(bpmString) || 80; if (String(bpmString).includes('-')) { const [start, end] = bpmString.split('-'); avgBpm = (parseInt(start) + parseInt(end)) / 2; } const totalBars = structure.reduce((sum, part) => sum + part.bars, 0); const totalSeconds = Math.round((totalBars * 4 / avgBpm) * 60); const minutes = Math.floor(totalSeconds / 60).toString().padStart(2, '0'); const seconds = (totalSeconds % 60).toString().padStart(2, '0'); return `${minutes}:${seconds}`; };
+        const renderStructureSequence = () => { ui.structureSequence.innerHTML = ''; if (promptState.structure) { promptState.structure.forEach((part, index) => { const tag = document.createElement('span'); tag.className = 'structure-tag px-3 py-1 rounded-md text-sm font-medium'; tag.textContent = `${part.name} (${part.bars})`; tag.title = 'Drag to reorder, right-click to remove'; tag.addEventListener('contextmenu', (e) => { e.preventDefault(); promptState.structure.splice(index, 1); renderStructureSequence(); generatePrompt(); }); ui.structureSequence.appendChild(tag); }); } updateEstimatedLength(); };
+        const resetState = () => { promptState.title = ""; promptState.structure = []; promptState.custom = ""; Object.keys(options).forEach(cat => { promptState[cat] = options[cat].multiSelect ? [] : null; }); updateUIFromState(); };
+        const updateUIFromState = () => { Object.keys(options).forEach(category => { const moduleContainer = container.querySelector(`#${category}-module .grid`); if (moduleContainer) { moduleContainer.querySelectorAll('.module-button').forEach(btn => { const selection = promptState[category]; const isSelected = Array.isArray(selection) ? selection.includes(btn.dataset.choice) : selection === btn.dataset.choice; btn.classList.toggle('selected', isSelected); }); } }); ui.titleInput.value = promptState.title || ""; ui.customPromptEl.value = promptState.custom || ""; if (promptState.bpm && !options.bpm.choices.includes(promptState.bpm)) { const customBtn = Array.from(container.querySelectorAll('#bpm-module .module-button')).find(b => b.dataset.choice === 'Custom'); if (customBtn) customBtn.classList.add('selected'); ui.customBpmInput.classList.remove('hidden'); ui.customBpmInput.value = promptState.bpm; } else { ui.customBpmInput.classList.add('hidden'); } const activeTemplate = Object.keys(arrangementTemplates).find(key => JSON.stringify(arrangementTemplates[key].structure) === JSON.stringify(promptState.structure)); ui.arrangementTemplatesContainer.querySelectorAll('.module-button').forEach(btn => btn.classList.remove('selected')); if(activeTemplate) { const activeBtn = Array.from(ui.arrangementTemplatesContainer.querySelectorAll('.module-button')).find(b => b.textContent.startsWith(activeTemplate)); if(activeBtn) activeBtn.classList.add('selected'); } renderStructureSequence(); generatePrompt(); };
+        
+        Object.keys(options).forEach(category => {
+            const moduleContainer = container.querySelector(`#${category}-module .grid`);
+            if (moduleContainer) {
+                moduleContainer.innerHTML = ''; 
+                options[category].choices.forEach(choice => {
+                    const button = document.createElement('button');
+                    button.textContent = choice;
+                    button.className = 'module-button w-full text-left p-3 rounded-lg bg-gray-800';
+                    button.dataset.choice = choice;
+                    moduleContainer.appendChild(button);
+                });
+
+                moduleContainer.addEventListener('click', (e) => {
+                    if (e.target.matches('.module-button')) {
+                        const button = e.target;
+                        const choice = button.dataset.choice;
+                        const moduleData = options[category];
+                        if (moduleData.multiSelect) {
+                            const selection = promptState[category] || [];
+                            const index = selection.indexOf(choice);
+                            if (index > -1) { selection.splice(index, 1); } else { selection.push(choice); }
+                            promptState[category] = selection;
+                        } else {
+                            promptState[category] = promptState[category] === choice ? null : choice;
+                            if (category === 'bpm') { ui.customBpmInput.classList.toggle('hidden', choice !== 'Custom'); if(choice === 'Custom') ui.customBpmInput.focus(); }
+                        }
+                        updateUIFromState();
+                    }
+                });
+            }
+        });
+
+        ui.arrangementTemplatesContainer.innerHTML = '';
+        Object.keys(arrangementTemplates).forEach(templateName => { const button = document.createElement('button'); const preset = arrangementTemplates[templateName]; button.innerHTML = `${templateName} <span class="font-mono text-cyan-400">[${calculateTime(preset.bpm, preset.structure)}]</span>`; button.className = 'module-button w-full p-3 rounded-lg bg-gray-800'; button.addEventListener('click', () => { promptState.structure = JSON.parse(JSON.stringify(preset.structure)); promptState.bpm = preset.bpm; updateUIFromState(); }); ui.arrangementTemplatesContainer.appendChild(button); });
+        ui.structurePalette.innerHTML = '';
+        structureParts.forEach(part => { const button = document.createElement('button'); button.textContent = `${part.name} (${part.bars})`; button.className = 'structure-button w-full p-2 rounded-lg bg-gray-800 text-sm'; button.addEventListener('click', () => { if(!promptState.structure) promptState.structure = []; promptState.structure.push(part); renderStructureSequence(); generatePrompt(); }); ui.structurePalette.appendChild(button); });
+
+        ui.randomizeAllBtn.addEventListener('click', () => { Object.keys(options).forEach(category => { const d = options[category]; if (d.multiSelect) { let n = Math.floor(Math.random()*3)+1; if (category === 'influence') n=1; const s = [...d.choices].sort(()=>0.5-Math.random()); promptState[category] = s.slice(0,n); } else { const c = d.choices.filter(i => i !== 'Custom'); promptState[category] = c[Math.floor(Math.random()*c.length)]; } }); const rKey = Object.keys(arrangementTemplates)[Math.floor(Math.random()*Object.keys(arrangementTemplates).length)]; promptState.structure = JSON.parse(JSON.stringify(arrangementTemplates[rKey].structure)); const words = []; ['mood','texture','keys'].forEach(c => { if (promptState[c] && promptState[c].length>0) promptState[c].forEach(i => words.push(...i.split(' '))); }); let uWords = [...new Set(words.map(w=>w.toLowerCase().replace(/[^a-z]/gi,'')))].filter(w=>w.length>2); if (uWords.length===0) uWords.push("Untitled","Echoes","Silence"); const shuf = uWords.sort(()=>0.5-Math.random()); const num = Math.floor(Math.random()*Math.min(shuf.length,3))+1; promptState.title = shuf.slice(0,num).map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(' '); promptState.custom = ""; updateUIFromState(); });
+        ui.globalResetBtn.addEventListener('click', resetState);
+        ui.structureResetBtn.addEventListener('click', () => { promptState.structure = []; updateUIFromState(); });
+        ui.titleInput.addEventListener('input', (e) => { promptState.title = e.target.value; generatePrompt(); });
+        ui.customPromptEl.addEventListener('input', (e) => { promptState.custom = e.target.value; generatePrompt(); });
+        ui.customBpmInput.addEventListener('input', (e) => { promptState.bpm = e.target.value; generatePrompt(); updateEstimatedLength(); });
+        ui.copyButton.addEventListener('click', () => { navigator.clipboard.writeText(ui.promptOutput.value).then(() => { ui.copyIcon.classList.add('hidden'); ui.checkIcon.classList.remove('hidden'); setTimeout(() => { ui.copyIcon.classList.remove('hidden'); ui.checkIcon.classList.add('hidden'); }, 2000); }); });
+        const openSaveModal = () => { const t = new Date(); const ts = `${t.getFullYear()}${(t.getMonth()+1).toString().padStart(2,'0')}${t.getDate().toString().padStart(2,'0')}_${t.getHours()}${t.getMinutes()}${t.getSeconds()}`; const safeTitle = (promptState.title||'lofi-prompt').replace(/[^a-z0-9]/gi,'_').toLowerCase(); ui.filenameInput.value = `${safeTitle}_${ts}.json`; ui.saveModal.classList.remove('hidden'); ui.saveModal.classList.add('flex'); };
+        ui.saveToFileBtnTop.addEventListener('click', openSaveModal);
+        ui.saveToFileBtnBottom.addEventListener('click', openSaveModal);
+        ui.loadFromFileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (re) => { try { const loaded = JSON.parse(re.target.result); Object.keys(options).forEach(key => { if (!loaded.hasOwnProperty(key)) loaded[key] = options[key].multiSelect?[]:null; }); Object.assign(promptState, loaded); updateUIFromState(); } catch (error) { alert("Could not load file."); } e.target.value = ''; }; reader.readAsText(file); });
+        ui.saveConfirmBtn.addEventListener('click', () => { const filename = ui.filenameInput.value; const dataStr = JSON.stringify(promptState, null, 2); const blob = new Blob([dataStr], {type: "application/json"}); const url = URL.createObjectURL(blob); const link = document.createElement('a'); link.download = filename; link.href = url; link.click(); URL.revokeObjectURL(url); ui.saveModal.classList.add('hidden'); ui.saveModal.classList.remove('flex'); });
+        ui.saveCancelBtn.addEventListener('click', () => { ui.saveModal.classList.add('hidden'); ui.saveModal.classList.remove('flex'); });
+        
+        new Sortable(ui.structureSequence, { animation: 150, ghostClass: 'sortable-ghost', onEnd: (evt) => { const [movedItem] = promptState.structure.splice(evt.oldIndex, 1); promptState.structure.splice(evt.newIndex, 0, movedItem); generatePrompt(); renderStructureSequence(); } });
+        
+        resetState();
+        container.dataset.initialized = 'true';
+    }
+</script>
 </body>
 </html>
